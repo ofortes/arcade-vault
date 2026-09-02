@@ -15,8 +15,9 @@ export default function Nav() {
     setUser(getUser());
   }, [pathname]);
 
-  const isActive = (section: "biblioteca" | "salon" | "auth") => {
-    if (section === "biblioteca") return pathname === "/" || pathname.startsWith("/juegos/");
+  const isActive = (section: "inicio" | "biblioteca" | "salon" | "auth") => {
+    if (section === "inicio") return pathname === "/";
+    if (section === "biblioteca") return pathname === "/biblioteca" || pathname.startsWith("/juegos/");
     if (section === "salon") return pathname === "/salon-de-la-fama";
     return pathname === "/auth";
   };
@@ -40,7 +41,10 @@ export default function Nav() {
           </div>
         </Link>
         <div className="links">
-          <Link href="/" className={isActive("biblioteca") ? "active" : ""}>
+          <Link href="/" className={isActive("inicio") ? "active" : ""}>
+            Inicio
+          </Link>
+          <Link href="/biblioteca" className={isActive("biblioteca") ? "active" : ""}>
             Biblioteca
           </Link>
           <Link href="/salon-de-la-fama" className={isActive("salon") ? "active" : ""}>
@@ -71,7 +75,10 @@ export default function Nav() {
         <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>
           MENÚ
         </div>
-        <Link href="/" className={isActive("biblioteca") ? "active" : ""} onClick={closeMenu}>
+        <Link href="/" className={isActive("inicio") ? "active" : ""} onClick={closeMenu}>
+          Inicio
+        </Link>
+        <Link href="/biblioteca" className={isActive("biblioteca") ? "active" : ""} onClick={closeMenu}>
           Biblioteca
         </Link>
         <Link href="/salon-de-la-fama" className={isActive("salon") ? "active" : ""} onClick={closeMenu}>
