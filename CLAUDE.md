@@ -8,14 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Arcade Vault — a platform to play games online and compete for high scores (per README.md, in Spanish). The project is currently a fresh `create-next-app` scaffold with no custom app code yet — `app/page.tsx` and `app/layout.tsx` are still the default template.
 
-## Commands
-
-- `npm run dev` — start the dev server (Turbopack)
-- `npm run build` — production build
-- `npm run start` — run the production build
-- `npm run lint` — ESLint (flat config via `eslint.config.mjs`, using `eslint-config-next`'s `core-web-vitals` + `typescript` rule sets)
-
 There is no test runner configured yet.
+
+## Skills
+
+Usa siempre /front-design para hacer interfaz de usuario.
 
 ## Stack
 
