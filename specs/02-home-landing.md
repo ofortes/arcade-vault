@@ -1,6 +1,6 @@
 # 02 · Pantalla de Inicio (Home)
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Depende de:** SPEC 01
 - **Fecha:** 2026-09-02
 - **Objetivo:** Portar la pantalla visual "Home" de `references/templates/home-about/home.jsx` como nueva ruta `/`, moviendo la Biblioteca actual a `/biblioteca` y añadiendo "Inicio" al navbar justo delante de "Biblioteca".
