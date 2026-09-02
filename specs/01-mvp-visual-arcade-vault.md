@@ -1,6 +1,6 @@
 # 01 · MVP visual de Arcade Vault
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Depende de:** (ninguno)
 - **Fecha:** 2026-09-02
 - **Objetivo:** Portar las 5 pantallas visuales de `references/templates/` (Biblioteca, Detalle, Reproductor, Auth, Salón de la Fama) a la app Next.js del proyecto, con navegación, datos de ejemplo y persistencia local funcionando, sin implementar lógica de ningún juego real.
