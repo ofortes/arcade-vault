@@ -18,7 +18,7 @@
   --line: rgba(0, 245, 255, 0.18);
   --line-2: rgba(255, 255, 255, 0.06);
   --pixel: var(--font-press-start-2p), system-ui, monospace;
-  --mono: var(--font-jetbrains-mono), "Courier Prime", "Courier New", monospace;
+  --mono: var(--font-jetbrains-mono), var(--font-courier-prime), "Courier New", monospace;
 }
 
 @theme inline {
