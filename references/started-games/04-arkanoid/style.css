@@ -1,0 +1,27 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b0b16;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+#game-container {
+  box-shadow: 0 0 24px rgba(0, 200, 255, 0.35);
+  border: 2px solid #2a2a44;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+#game {
+  display: block;
+  background: #111122;
+  cursor: none;
+}
