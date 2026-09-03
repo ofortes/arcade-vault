@@ -1,6 +1,6 @@
 # 04 · Integración de Supabase
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Depende de:** (ninguno)
 - **Fecha:** 2026-09-03
 - **Objetivo:** Instalar y configurar el cliente de Supabase (`@supabase/ssr`) en la app Next.js, dejando listos los helpers de cliente y servidor con las credenciales del proyecto, sin conectar todavía ninguna pantalla, tabla ni lógica de autenticación real.
@@ -40,12 +40,12 @@ Cada paso deja la app arrancable con `npm run dev` y sin errores de TypeScript/b
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` completa sin errores de TypeScript ni de lint.
-- [ ] `package.json` incluye `@supabase/ssr` como dependencia.
-- [ ] Existen `lib/supabase/client.ts` y `lib/supabase/server.ts`, cada uno exportando una función `createClient()` que instancia el cliente de Supabase correspondiente sin lanzar errores.
-- [ ] Existe `.env.example` versionado con `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` vacíos; `.env.local` (con los valores reales) no aparece en `git status` como archivo para commitear.
-- [ ] Ninguna pantalla existente (`/`, `/biblioteca`, `/juegos/[id]`, `/juegos/[id]/jugar`, `/auth`, `/salon-de-la-fama`, `/acerca-de`) cambia de comportamiento visual ni funcional.
-- [ ] No hay ninguna tabla creada en el proyecto Supabase ni ninguna query/insert real ejecutada desde la app.
+- [x] `npm run build` completa sin errores de TypeScript ni de lint.
+- [x] `package.json` incluye `@supabase/ssr` como dependencia.
+- [x] Existen `lib/supabase/client.ts` y `lib/supabase/server.ts`, cada uno exportando una función `createClient()` que instancia el cliente de Supabase correspondiente sin lanzar errores.
+- [x] Existe `.env.example` versionado con `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` vacíos; `.env.local` (con los valores reales) no aparece en `git status` como archivo para commitear.
+- [x] Ninguna pantalla existente (`/`, `/biblioteca`, `/juegos/[id]`, `/juegos/[id]/jugar`, `/auth`, `/salon-de-la-fama`, `/acerca-de`) cambia de comportamiento visual ni funcional.
+- [x] No hay ninguna tabla creada en el proyecto Supabase ni ninguna query/insert real ejecutada desde la app.
 
 ## Decisiones tomadas y descartadas
 
