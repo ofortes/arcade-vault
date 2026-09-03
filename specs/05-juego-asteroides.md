@@ -1,6 +1,6 @@
 # 05 · Juego Asteroides
 
-- **Estado:** Aprovado
+- **Estado:** Implementado
 - **Depende de:** (ninguno)
 - **Fecha:** 2026-09-03
 - **Objetivo:** Portar el clon de Asteroids (vanilla JS + Canvas de `references/started-games/02-asteroids/`) como un juego nuevo y jugable en Arcade Vault, con `id: "asteroides"` (distinto de `"rocas"`, que ya existe en `lib/games.ts` y no se toca), integrado en la ruta `/juegos/asteroides/jugar`.
@@ -64,15 +64,15 @@ Cada paso deja compila la app con `npm run build` y sin errores de TypeScript/bu
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` completa sin errores de TypeScript ni de lint.
-- [ ] `/juegos/asteroides` (detalle) y `/biblioteca` muestran la ficha "ASTEROIDES" con la portada `cover-asteroides`; `"rocas"` sigue intacto.
-- [ ] `/juegos/asteroides/jugar` muestra un canvas real con la nave, asteroides y HUD arrancando en Puntuación 0, Vidas 3, Nivel 01.
-- [ ] Las flechas rotan/aceleran la nave y Espacio dispara; los asteroides se fragmentan y la Puntuación del HUD de React sube en tiempo real.
-- [ ] El botón "PAUSA" congela el juego (nave/asteroides dejan de moverse) y "REANUDAR" continúa sin saltos.
-- [ ] Perder las 3 vidas abre el modal "FIN DEL JUEGO" con el puntaje real (no un valor fijo); guardar con iniciales persiste la entrada en `localStorage` (`av_scores`).
-- [ ] "JUGAR DE NUEVO" reinicia el motor (Puntuación 0, Vidas 3, Nivel 01) sin recargar la página.
-- [ ] Salir con "SALIR" y volver a entrar a `/juegos/asteroides/jugar` no duplica listeners de teclado ni bucles de `requestAnimationFrame` (el juego no acelera ni responde a inputs fantasma tras varias entradas/salidas).
-- [ ] Los demás juegos de `lib/games.ts` (incluido `"rocas"`) siguen mostrando el mockup `game-arena` sin cambios de comportamiento.
+- [x] `npm run build` completa sin errores de TypeScript ni de lint.
+- [x] `/juegos/asteroides` (detalle) y `/biblioteca` muestran la ficha "ASTEROIDES" con la portada `cover-asteroides`; `"rocas"` sigue intacto.
+- [x] `/juegos/asteroides/jugar` muestra un canvas real con la nave, asteroides y HUD arrancando en Puntuación 0, Vidas 3, Nivel 01.
+- [x] Las flechas rotan/aceleran la nave y Espacio dispara; los asteroides se fragmentan y la Puntuación del HUD de React sube en tiempo real.
+- [x] El botón "PAUSA" congela el juego (nave/asteroides dejan de moverse) y "REANUDAR" continúa sin saltos.
+- [x] Perder las 3 vidas abre el modal "FIN DEL JUEGO" con el puntaje real (no un valor fijo); guardar con iniciales persiste la entrada en `localStorage` (`av_scores`).
+- [x] "JUGAR DE NUEVO" reinicia el motor (Puntuación 0, Vidas 3, Nivel 01) sin recargar la página.
+- [x] Salir con "SALIR" y volver a entrar a `/juegos/asteroides/jugar` no duplica listeners de teclado ni bucles de `requestAnimationFrame` (el juego no acelera ni responde a inputs fantasma tras varias entradas/salidas).
+- [x] Los demás juegos de `lib/games.ts` (incluido `"rocas"`) siguen mostrando el mockup `game-arena` sin cambios de comportamiento.
 
 ## Decisiones tomadas y descartadas
 
