@@ -1,6 +1,6 @@
 # 03 · Pantalla Acerca de (About)
 
-- **Estado:** Aprovado
+- **Estado:** Implementado
 - **Depende de:** SPEC 02
 - **Fecha:** 2026-09-03
 - **Objetivo:** Portar la pantalla visual "About" de `references/templates/home-about/about.jsx` como nueva ruta `/acerca-de`, con formulario de contacto mock, y añadir "Acerca de" al navbar al final del menú.
