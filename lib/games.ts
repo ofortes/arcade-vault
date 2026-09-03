@@ -1,21 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Game } from "@/lib/games-types";
 
-export type GameCategory = "ARCADE" | "PUZZLE" | "SHOOTER" | "VERSUS";
-export type GameColor = "cyan" | "magenta" | "yellow" | "green";
-
-export interface Game {
-  id: string;
-  title: string;
-  short: string;
-  long: string;
-  cat: GameCategory;
-  cover: string;
-  color: GameColor;
-  best: number;
-  plays: string;
-}
-
-export const CATS = ["TODOS", "ARCADE", "PUZZLE", "SHOOTER", "VERSUS"] as const;
+export type { GameCategory, GameColor, Game } from "@/lib/games-types";
+export { CATS } from "@/lib/games-types";
 
 async function withRealBest(games: Game[]): Promise<Game[]> {
   const supabase = await createClient();

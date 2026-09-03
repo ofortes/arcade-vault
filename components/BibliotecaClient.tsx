@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import GameCard from "@/components/GameCard";
-import { CATS, type Game } from "@/lib/games";
+import { CATS, type Game } from "@/lib/games-types";
 
 export default function BibliotecaClient({ games }: { games: Game[] }) {
   const [q, setQ] = useState("");
