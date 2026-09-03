@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Game } from "@/lib/games";
-import { getUser, saveScore } from "@/lib/session";
+import { getUser } from "@/lib/session";
+import { createClient } from "@/lib/supabase/client";
 import {
   createAsteroidsGame,
   type AsteroidsGameHandle,
@@ -182,8 +183,13 @@ export default function GamePlayer({ game }: { game: Game }) {
                 />
                 <button
                   className="btn yellow"
-                  onClick={() => {
-                    saveScore({ game: game.id, score: finalScore, name });
+                  onClick={async () => {
+                    if (isAsteroides) {
+                      const supabase = createClient();
+                      await supabase
+                        .from("scores")
+                        .insert({ game_id: game.id, name, score: finalScore });
+                    }
                     setSaved(true);
                   }}
                 >
