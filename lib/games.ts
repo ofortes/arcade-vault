@@ -1,24 +1,40 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Game } from "@/lib/games-types";
+import { gameEngines } from "@/lib/games/registry";
 
 export type { GameCategory, GameColor, Game } from "@/lib/games-types";
 export { CATS } from "@/lib/games-types";
 
-async function withRealBest(games: Game[]): Promise<Game[]> {
-  const supabase = await createClient();
+async function bestFor(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  gameId: string,
+) {
   const { data } = await supabase
     .from("scores")
     .select("score")
-    .eq("game_id", "asteroides")
+    .eq("game_id", gameId)
     .order("score", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (!data) return games;
+  return data?.score;
+}
 
-  return games.map((game) =>
-    game.id === "asteroides" ? { ...game, best: data.score } : game,
+async function withRealBest(games: Game[]): Promise<Game[]> {
+  const supabase = await createClient();
+  const realGames = games.filter((game) => game.id in gameEngines);
+
+  if (realGames.length === 0) return games;
+
+  const bests = await Promise.all(
+    realGames.map((game) => bestFor(supabase, game.id)),
   );
+  const bestById = new Map(realGames.map((game, i) => [game.id, bests[i]]));
+
+  return games.map((game) => {
+    const best = bestById.get(game.id);
+    return best === undefined ? game : { ...game, best };
+  });
 }
 
 export async function getGames(): Promise<Game[]> {
@@ -40,7 +56,7 @@ export async function getGame(id: string): Promise<Game | null> {
 
   if (error || !data) return null;
 
-  if (data.id === "asteroides") {
+  if (data.id in gameEngines) {
     const [withBest] = await withRealBest([data as Game]);
     return withBest;
   }

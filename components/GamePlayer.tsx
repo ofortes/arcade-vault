@@ -5,10 +5,7 @@ import Link from "next/link";
 import type { Game } from "@/lib/games";
 import { getUser } from "@/lib/session";
 import { createClient } from "@/lib/supabase/client";
-import {
-  createAsteroidsGame,
-  type AsteroidsGameHandle,
-} from "@/lib/games/asteroides/engine";
+import { getGameEngine, type GameEngineHandle } from "@/lib/games/registry";
 
 const DEMO_SCORE = 48200;
 const DEMO_LIVES = 3;
@@ -16,22 +13,24 @@ const DEMO_LEVEL = 3;
 const DEMO_FINAL_SCORE = 128450;
 
 export default function GamePlayer({ game }: { game: Game }) {
-  const isAsteroides = game.id === "asteroides";
+  const engine = getGameEngine(game.id);
+  const isRealGame = !!engine;
+  const isTetris = game.id === "tetris";
 
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [name, setName] = useState("INVITADO");
   const [saved, setSaved] = useState(false);
 
-  const [score, setScore] = useState(isAsteroides ? 0 : DEMO_SCORE);
-  const [lives, setLives] = useState(isAsteroides ? 3 : DEMO_LIVES);
-  const [level, setLevel] = useState(isAsteroides ? 1 : DEMO_LEVEL);
+  const [score, setScore] = useState(isRealGame ? 0 : DEMO_SCORE);
+  const [lives, setLives] = useState(isRealGame ? 3 : DEMO_LIVES);
+  const [level, setLevel] = useState(isRealGame ? 1 : DEMO_LEVEL);
   const [finalScore, setFinalScore] = useState(
-    isAsteroides ? 0 : DEMO_FINAL_SCORE,
+    isRealGame ? 0 : DEMO_FINAL_SCORE,
   );
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const handleRef = useRef<AsteroidsGameHandle | null>(null);
+  const handleRef = useRef<GameEngineHandle | null>(null);
 
   useEffect(() => {
     const user = getUser();
@@ -39,8 +38,8 @@ export default function GamePlayer({ game }: { game: Game }) {
   }, []);
 
   useEffect(() => {
-    if (!isAsteroides || !canvasRef.current) return;
-    const handle = createAsteroidsGame(canvasRef.current, {
+    if (!engine || !canvasRef.current) return;
+    const handle = engine.create(canvasRef.current, {
       onScoreChange: setScore,
       onLivesChange: setLives,
       onLevelChange: setLevel,
@@ -48,13 +47,14 @@ export default function GamePlayer({ game }: { game: Game }) {
         setFinalScore(final);
         setOver(true);
       },
+      onPauseChange: setPaused,
     });
     handleRef.current = handle;
     return () => {
       handle.destroy();
       handleRef.current = null;
     };
-  }, [isAsteroides]);
+  }, [engine]);
 
   const togglePause = () => {
     setPaused((p) => {
@@ -89,8 +89,10 @@ export default function GamePlayer({ game }: { game: Game }) {
             <div className="v">{score.toLocaleString("es-ES")}</div>
           </div>
           <div className="hud-stat lives">
-            <div className="l">Vidas</div>
-            <div className="v">{"♥ ".repeat(lives).trim() || "—"}</div>
+            <div className="l">{isTetris ? "Líneas" : "Vidas"}</div>
+            <div className="v">
+              {isTetris ? lives : "♥ ".repeat(lives).trim() || "—"}
+            </div>
           </div>
           <div className="hud-stat level">
             <div className="l">Nivel</div>
@@ -101,7 +103,7 @@ export default function GamePlayer({ game }: { game: Game }) {
           <button className="btn yellow" onClick={togglePause}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
-          {!isAsteroides && (
+          {!isRealGame && (
             <button className="btn magenta" onClick={endGame}>
               SIMULAR FIN DE PARTIDA
             </button>
@@ -114,11 +116,11 @@ export default function GamePlayer({ game }: { game: Game }) {
 
       <div className="crt">
         <div className="crt-screen">
-          {isAsteroides ? (
+          {engine ? (
             <canvas
               ref={canvasRef}
-              width={800}
-              height={600}
+              width={engine.width}
+              height={engine.height}
               style={{
                 position: "absolute",
                 inset: 0,
@@ -184,7 +186,7 @@ export default function GamePlayer({ game }: { game: Game }) {
                 <button
                   className="btn yellow"
                   onClick={async () => {
-                    if (isAsteroides) {
+                    if (isRealGame) {
                       const supabase = createClient();
                       await supabase
                         .from("scores")
