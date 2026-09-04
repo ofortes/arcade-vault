@@ -15,6 +15,7 @@ const DEMO_FINAL_SCORE = 128450;
 export default function GamePlayer({ game }: { game: Game }) {
   const engine = getGameEngine(game.id);
   const isRealGame = !!engine;
+  const isTetris = game.id === "tetris";
 
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
@@ -46,6 +47,7 @@ export default function GamePlayer({ game }: { game: Game }) {
         setFinalScore(final);
         setOver(true);
       },
+      onPauseChange: setPaused,
     });
     handleRef.current = handle;
     return () => {
@@ -87,8 +89,10 @@ export default function GamePlayer({ game }: { game: Game }) {
             <div className="v">{score.toLocaleString("es-ES")}</div>
           </div>
           <div className="hud-stat lives">
-            <div className="l">Vidas</div>
-            <div className="v">{"♥ ".repeat(lives).trim() || "—"}</div>
+            <div className="l">{isTetris ? "Líneas" : "Vidas"}</div>
+            <div className="v">
+              {isTetris ? lives : "♥ ".repeat(lives).trim() || "—"}
+            </div>
           </div>
           <div className="hud-stat level">
             <div className="l">Nivel</div>
