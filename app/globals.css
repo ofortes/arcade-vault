@@ -847,6 +847,23 @@ a {
   text-shadow: 0 0 8px var(--cyan);
 }
 
+.cover-tetris {
+  background: radial-gradient(circle at 50% 100%, #003a4a, #0a0a18);
+}
+.cover-tetris::after {
+  content: "";
+  position: absolute;
+  inset: 25% 30% 15% 30%;
+  background:
+    linear-gradient(var(--cyan), var(--cyan)) 33% 0/33% 50%,
+    linear-gradient(var(--cyan), var(--cyan)) 0 50%/33% 50%,
+    linear-gradient(var(--cyan), var(--cyan)) 33% 50%/33% 50%,
+    linear-gradient(var(--cyan), var(--cyan)) 66% 50%/33% 50%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.5));
+  image-rendering: pixelated;
+}
+
 .cover-rana {
   background: linear-gradient(180deg, #001f2a, #0a0a18);
 }
