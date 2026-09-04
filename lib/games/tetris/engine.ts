@@ -29,7 +29,7 @@ const COLORS = [
   "#e57373", // Z - red
   "#90caf9", // J - pale blue
   "#ffb74d", // L - orange
-  "#9e9e9e", // N - tuerca (gris metálico)
+  // "#9e9e9e", // N - tuerca (gris metálico)
 ];
 
 const PIECES: (number[][] | null)[] = [
@@ -69,11 +69,11 @@ const PIECES: (number[][] | null)[] = [
     [7, 7, 7],
     [0, 0, 0],
   ], // L
-  [
-    [8, 8, 8],
-    [8, 0, 8],
-    [8, 8, 8],
-  ], // N (tuerca)
+  // [
+  //   [8, 8, 8],
+  //   [8, 0, 8],
+  //   [8, 8, 8],
+  // ], // N (tuerca)
 ];
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
@@ -132,7 +132,7 @@ export function createTetrisGame(
   }
 
   function randomPiece(): Piece {
-    const type = Math.floor(Math.random() * 8) + 1;
+    const type = Math.floor(Math.random() * 7) + 1;
     const shape = PIECES[type]!.map((row) => [...row]);
     return {
       type,

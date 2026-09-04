@@ -1,6 +1,6 @@
 # 07 · Juego Tetris
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Depende de:** SPEC 05 (juego asteroides), SPEC 06 (leaderboard y tabla de juegos)
 - **Fecha:** 2026-09-04
 - **Objetivo:** Portar el clon de Tetris (vanilla JS + Canvas de `references/started-games/03-tetris-commands/`) como un juego nuevo y jugable en Arcade Vault, con `id: "tetris"` (distinto de `"caida"`, que ya existe en la tabla `games` y no se toca), integrado en la ruta `/juegos/tetris/jugar`.
