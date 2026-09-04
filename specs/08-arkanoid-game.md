@@ -1,6 +1,6 @@
 # 08 · Juego Arkanoid
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Depende de:** SPEC 05 (juego asteroides), SPEC 06 (leaderboard y tabla de juegos), SPEC 07 (juego tetris)
 - **Fecha:** 2026-09-04
 - **Objetivo:** Portar el clon de Arkanoid (vanilla JS + Canvas de `references/started-games/04-arkanoid/`) como un juego nuevo y jugable en Arcade Vault, con `id: "arkanoid"` (distinto de `"bloque-buster"`, que ya existe en la tabla `games` y no se toca), integrado en la ruta `/juegos/arkanoid/jugar`.
@@ -95,20 +95,20 @@ Cada paso deja la app compilando (`npm run build`) y, salvo el paso 4 (que solo 
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` completa sin errores de TypeScript ni de lint.
-- [ ] `mcp__supabase__execute_sql` confirma que `games` tiene la fila `"arkanoid"` (título "ARKANOID", `cat` = `ARCADE`, `cover` = `cover-arkanoid`, `color` = `magenta`).
-- [ ] `/juegos/arkanoid` (detalle) y `/biblioteca` muestran la ficha "ARKANOID" con la portada `cover-arkanoid`; `"bloque-buster"` sigue intacto.
-- [ ] `/juegos/arkanoid/jugar` muestra un canvas real de 448×600 con la paleta, la pelota y 8 filas de ladrillos (nivel 1), arrancando en Puntuación 0, Vidas 3, Nivel 01.
-- [ ] Las flechas izquierda/derecha (o `A`/`D`) y el mouse mueven la paleta; `Space` o click lanzan la pelota.
-- [ ] Romper un ladrillo suma 10 puntos, reproduce el sonido de rotura y el HUD de React ("Puntuación") sube en tiempo real.
-- [ ] Perder una vida (pelota bajo la paleta) muestra el overlay "Vida perdida" dentro del canvas y descuenta una vida del HUD de React sin terminar la partida (si quedan vidas).
-- [ ] Romper todos los ladrillos de un nivel avanza al siguiente (huecos en el grid, pelota más rápida) sin perder el progreso de puntuación.
-- [ ] El botón "PAUSA" congela el juego (paleta/pelota dejan de moverse) y "REANUDAR" continúa sin saltos.
-- [ ] Perder las 3 vidas abre el modal "FIN DEL JUEGO" con el puntaje real; guardar con iniciales inserta una fila real en `scores` (Supabase). Completar los 3 niveles sin perder reinicia la partida automáticamente sin abrir ese modal.
-- [ ] "JUGAR DE NUEVO" reinicia el motor (Puntuación 0, Vidas 3, Nivel 01, tablero del nivel 1) sin recargar la página.
-- [ ] Salir con "SALIR" y volver a entrar a `/juegos/arkanoid/jugar` no duplica listeners de teclado/mouse ni bucles de `requestAnimationFrame`.
-- [ ] `/salon-de-la-fama` (tab "ARKANOID") y el aside de `/juegos/arkanoid` muestran "AÚN SIN PUNTAJES" antes de guardar el primer puntaje, y el puntaje real después de guardarlo.
-- [ ] Los demás juegos (incluidos `"bloque-buster"`, `"asteroides"` y `"tetris"`) siguen funcionando sin cambios de comportamiento.
+- [x] `npm run build` completa sin errores de TypeScript ni de lint.
+- [x] `mcp__supabase__execute_sql` confirma que `games` tiene la fila `"arkanoid"` (título "ARKANOID", `cat` = `ARCADE`, `cover` = `cover-arkanoid`, `color` = `magenta`).
+- [x] `/juegos/arkanoid` (detalle) y `/biblioteca` muestran la ficha "ARKANOID" con la portada `cover-arkanoid`; `"bloque-buster"` sigue intacto.
+- [x] `/juegos/arkanoid/jugar` muestra un canvas real de 448×600 con la paleta, la pelota y 8 filas de ladrillos (nivel 1), arrancando en Puntuación 0, Vidas 3, Nivel 01.
+- [x] Las flechas izquierda/derecha (o `A`/`D`) y el mouse mueven la paleta; `Space` o click lanzan la pelota.
+- [x] Romper un ladrillo suma 10 puntos, reproduce el sonido de rotura y el HUD de React ("Puntuación") sube en tiempo real.
+- [x] Perder una vida (pelota bajo la paleta) muestra el overlay "Vida perdida" dentro del canvas y descuenta una vida del HUD de React sin terminar la partida (si quedan vidas).
+- [ ] Romper todos los ladrillos de un nivel avanza al siguiente (huecos en el grid, pelota más rápida) sin perder el progreso de puntuación. _(lógica portada 1:1 del original y cubierta por `tsc`/`build`, pero no se forzó a mano un tablero completo durante el playtest de este spec)._
+- [x] El botón "PAUSA" congela el juego (paleta/pelota dejan de moverse) y "REANUDAR" continúa sin saltos.
+- [x] Perder las 3 vidas abre el modal "FIN DEL JUEGO" con el puntaje real; guardar con iniciales inserta una fila real en `scores` (Supabase). Completar los 3 niveles sin perder reinicia la partida automáticamente sin abrir ese modal _(código verificado, no forzado a mano)_.
+- [x] "JUGAR DE NUEVO" reinicia el motor (Puntuación 0, Vidas 3, Nivel 01, tablero del nivel 1) sin recargar la página.
+- [x] Salir con "SALIR" y volver a entrar a `/juegos/arkanoid/jugar` no duplica listeners de teclado/mouse ni bucles de `requestAnimationFrame`.
+- [x] `/salon-de-la-fama` (tab "ARKANOID") y el aside de `/juegos/arkanoid` muestran "AÚN SIN PUNTAJES" antes de guardar el primer puntaje, y el puntaje real después de guardarlo.
+- [x] Los demás juegos (incluidos `"bloque-buster"`, `"asteroides"` y `"tetris"`) siguen funcionando sin cambios de comportamiento.
 
 ## Decisiones tomadas y descartadas
 
