@@ -1,5 +1,6 @@
 import { createAsteroidsGame } from "./asteroides/engine";
 import { createTetrisGame } from "./tetris/engine";
+import { createArkanoidGame } from "./arkanoid/engine";
 
 export interface GameEngineCallbacks {
   onScoreChange: (score: number) => void;
@@ -28,6 +29,7 @@ export interface GameEngineEntry {
 export const gameEngines: Record<string, GameEngineEntry> = {
   asteroides: { create: createAsteroidsGame, width: 800, height: 600 },
   tetris: { create: createTetrisGame, width: 300, height: 600 },
+  arkanoid: { create: createArkanoidGame, width: 448, height: 600 },
 };
 
 export function getGameEngine(id: string): GameEngineEntry | undefined {
