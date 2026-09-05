@@ -114,20 +114,20 @@ Cada paso deja la app compilando (`npm run build`) y, salvo el paso 4 (que solo 
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` completa sin errores de TypeScript ni de lint.
-- [ ] `mcp__supabase__execute_sql` confirma que `games` tiene la fila `"snake"` (título "SNAKE", `cat` = `ARCADE`, `cover` = `cover-snake-real`, `color` = `yellow`); `"serpentina"` sigue intacto.
-- [ ] `/juegos/snake` (detalle) y `/biblioteca` muestran la ficha "SNAKE" con la portada `cover-snake-real`.
-- [ ] `/juegos/snake/jugar` muestra un canvas de 480×480 con grid 20×20, serpiente inicial de 3 celdas y una fruta, arrancando en Puntuación 0, Nivel 01.
-- [ ] Las flechas y WASD mueven la serpiente; no se puede invertir 180° sobre sí misma en el mismo tick.
-- [ ] Comer una fruta suma 10 puntos, hace crecer la serpiente en una celda y elige una fruta aleatoria distinta del atlas para la siguiente.
-- [ ] Cada 5 frutas comidas el Nivel sube y la velocidad del juego aumenta perceptiblemente.
-- [ ] Chocar contra el borde del canvas o contra el propio cuerpo dispara game over.
-- [ ] El botón "PAUSA" congela el juego y "REANUDAR" continúa sin saltos ni pérdida de estado.
-- [ ] Game over abre el modal "FIN DEL JUEGO" con el puntaje real; guardar con iniciales inserta una fila real en `scores` (Supabase).
-- [ ] "JUGAR DE NUEVO" reinicia el motor (Puntuación 0, Nivel 01, serpiente inicial) sin recargar la página.
-- [ ] Salir con "SALIR" y volver a entrar a `/juegos/snake/jugar` no duplica listeners de teclado ni loops de tick.
-- [ ] `/salon-de-la-fama` (tab "SNAKE") y el aside de `/juegos/snake` muestran "AÚN SIN PUNTAJES" antes de guardar el primer puntaje, y el puntaje real después de guardarlo.
-- [ ] Los demás juegos (incluido `"serpentina"`) siguen funcionando sin cambios de comportamiento.
+- [x] `npm run build` completa sin errores de TypeScript ni de lint.
+- [x] `mcp__supabase__execute_sql` confirma que `games` tiene la fila `"snake"` (título "SNAKE", `cat` = `ARCADE`, `cover` = `cover-snake-real`, `color` = `yellow`); `"serpentina"` sigue intacto.
+- [x] `/juegos/snake` (detalle) y `/biblioteca` muestran la ficha "SNAKE" con la portada `cover-snake-real`.
+- [x] `/juegos/snake/jugar` muestra un canvas de 480×480 con grid 20×20, serpiente inicial de 3 celdas y una fruta, arrancando en Puntuación 0, Nivel 01.
+- [x] Las flechas y WASD mueven la serpiente; no se puede invertir 180° sobre sí misma en el mismo tick.
+- [x] Comer una fruta suma 10 puntos, hace crecer la serpiente en una celda y elige una fruta aleatoria distinta del atlas para la siguiente.
+- [x] Cada 5 frutas comidas el Nivel sube y la velocidad del juego aumenta perceptiblemente.
+- [x] Chocar contra el borde del canvas o contra el propio cuerpo dispara game over.
+- [x] El botón "PAUSA" congela el juego y "REANUDAR" continúa sin saltos ni pérdida de estado.
+- [x] Game over abre el modal "FIN DEL JUEGO" con el puntaje real; guardar con iniciales inserta una fila real en `scores` (Supabase).
+- [x] "JUGAR DE NUEVO" reinicia el motor (Puntuación 0, Nivel 01, serpiente inicial) sin recargar la página.
+- [x] Salir con "SALIR" y volver a entrar a `/juegos/snake/jugar` no duplica listeners de teclado ni loops de tick.
+- [x] `/salon-de-la-fama` (tab "SNAKE") y el aside de `/juegos/snake` muestran "AÚN SIN PUNTAJES" antes de guardar el primer puntaje, y el puntaje real después de guardarlo.
+- [x] Los demás juegos (incluido `"serpentina"`) siguen funcionando sin cambios de comportamiento.
 
 ## Decisiones tomadas y descartadas
 
