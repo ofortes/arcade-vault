@@ -1,6 +1,6 @@
 # 09 · Juego Snake
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Depende de:** SPEC 05 (juego asteroides), SPEC 06 (leaderboard y tabla de juegos)
 - **Fecha:** 2026-09-05
 - **Objetivo:** Crear desde cero el juego Snake (id: `"snake"`, distinto del mockup `"serpentina"` ya existente en `games`) con motor propio en TypeScript, usando el sprite de frutas `fruits.png` (`references/started-games/05-snake-assets/`) como único asset gráfico portado, integrado en `/juegos/snake/jugar`.
