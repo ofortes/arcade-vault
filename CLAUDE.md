@@ -6,9 +6,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Arcade Vault — a platform to play games online and compete for high scores (per README.md, in Spanish). The project is currently a fresh `create-next-app` scaffold with no custom app code yet — `app/page.tsx` and `app/layout.tsx` are still the default template.
+Arcade Vault — a platform to play games online and compete for high scores (per README.md, in Spanish).
 
-There is no test runner configured yet.
+There is no test runner configured yet; verification is manual (`npm run build` + playing a full match) per spec.
+
+## Estado actual (specs implementadas, 01–09)
+
+- **01 MVP visual** — scaffold inicial de UI.
+- **02 Home/Landing** — `components/HomeLanding.tsx` (Server Component en `app/page.tsx`).
+- **03 Acerca de**.
+- **04 Integración Supabase** — `lib/supabase/`, `lib/games.ts`; juegos y scores persistidos en base de datos real.
+- **05 Juego Asteroides** — `lib/games/asteroides/engine.ts`, `components/GamePlayer.tsx`, guardado real de score al terminar partida.
+- **06 Leaderboard y tabla de juegos** — Salón de la Fama y biblioteca alimentados con queries reales a Supabase (`HallOfFameClient.tsx`, `BibliotecaClient.tsx`).
+- **07 Tetris** — `lib/games/tetris/engine.ts`, HUD condicional ("Líneas") en `GamePlayer.tsx`.
+- **08 Arkanoid** — `lib/games/arkanoid/engine.ts` + `spritesheet.ts`, assets/sonidos en `public/`, ficha insertada en tabla `games`.
+- **09 Snake** — `lib/games/snake/engine.ts` + `sprites.ts` (atlas `fruits.png` en `public/sprites/snake/`), portada `.cover-snake-real` en `globals.css`.
+
+Todos los motores de juego se registran en `lib/games/registry.ts` (`gameEngines`).
+
+Rutas clave: `/juegos` (biblioteca), `/juegos/[id]` (ficha), `/juegos/[id]/jugar` (reproductor), Salón de la Fama.
 
 ## Skills
 
