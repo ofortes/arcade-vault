@@ -69,7 +69,10 @@ const LEVELS: LevelConfig[] = [
   },
 ];
 
-const BRICK_COLORS_BY_ROW = [
+type BrickColorKey =
+  "hotpink" | "red" | "magenta" | "yellow" | "green" | "cyan";
+
+const BRICK_COLORS_BY_ROW: BrickColorKey[] = [
   "hotpink",
   "red",
   "magenta",
@@ -77,6 +80,88 @@ const BRICK_COLORS_BY_ROW = [
   "green",
   "cyan",
 ];
+
+// --- Skins -----------------------------------------------------------
+// "classic" reutiliza el spritesheet original (arte NES portado). Los
+// skins "retro" y "neon" dibujan los ladrillos/paddle/ball como vectores
+// (fillRect/strokeRect) para poder aplicarles paleta e efectos propios sin
+// depender del atlas de sprites.
+interface Skin {
+  key: string;
+  mode: "sprite" | "vector";
+  boardBg: string | null;
+  hudColor: string;
+  paddleColor: string;
+  ballColor: string;
+  brickPalette: Record<BrickColorKey, string>;
+  brickHighlight: boolean;
+  glow: boolean;
+  strokeOutline: boolean;
+}
+
+const SKINS: Record<string, Skin> = {
+  // Paleta arcade original (arte NES vía spritesheet ya existente).
+  classic: {
+    key: "classic",
+    mode: "sprite",
+    boardBg: null,
+    hudColor: "white",
+    paddleColor: "white",
+    ballColor: "white",
+    brickPalette: {
+      hotpink: "hotpink",
+      red: "red",
+      magenta: "magenta",
+      yellow: "yellow",
+      green: "green",
+      cyan: "cyan",
+    },
+    brickHighlight: false,
+    glow: false,
+    strokeOutline: false,
+  },
+  // CRT: colores saturados/pastel, sin brillo, highlight sutil al tope.
+  retro: {
+    key: "retro",
+    mode: "vector",
+    boardBg: "#1a1a2e",
+    hudColor: "#f5f0e6",
+    paddleColor: "#f5f0e6",
+    ballColor: "#f5f0e6",
+    brickPalette: {
+      hotpink: "#e0668c",
+      red: "#d4574a",
+      magenta: "#b569c9",
+      yellow: "#e0c15c",
+      green: "#5cad6b",
+      cyan: "#5ca8c9",
+    },
+    brickHighlight: true,
+    glow: false,
+    strokeOutline: false,
+  },
+  // Eléctrico: shadowBlur + contornos brillantes, fondo negro puro.
+  neon: {
+    key: "neon",
+    mode: "vector",
+    boardBg: "#000000",
+    hudColor: "#00fff2",
+    paddleColor: "#2bf5ff",
+    ballColor: "#ffffff",
+    brickPalette: {
+      hotpink: "#ff2bd6",
+      red: "#ff2b4d",
+      magenta: "#c92bff",
+      yellow: "#faff2b",
+      green: "#2bff6a",
+      cyan: "#2bf5ff",
+    },
+    brickHighlight: false,
+    glow: true,
+    strokeOutline: true,
+  },
+};
+
 const BRICK_COLS = 8;
 const BRICK_POINTS = 10;
 const INITIAL_LIVES = 3;
@@ -99,7 +184,7 @@ interface Brick {
   y: number;
   w: number;
   h: number;
-  color: string;
+  color: BrickColorKey;
   alive: boolean;
 }
 
@@ -115,9 +200,12 @@ interface Explosion {
 export function createArkanoidGame(
   canvas: HTMLCanvasElement,
   callbacks: GameEngineCallbacks,
+  skinKey?: string,
 ): GameEngineHandle {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("No se pudo obtener el contexto 2D del canvas");
+
+  let currentSkin: Skin = SKINS[skinKey ?? "classic"] ?? SKINS.classic;
 
   const PADDLE_Y = canvas.height - 40;
   const BRICK_OFFSET_X =
@@ -224,7 +312,7 @@ export function createArkanoidGame(
 
   function drawHud() {
     ctx!.save();
-    ctx!.fillStyle = "white";
+    ctx!.fillStyle = currentSkin.hudColor;
     ctx!.font = "16px sans-serif";
     ctx!.textAlign = "left";
     ctx!.fillText(`Score: ${state.score}`, 10, 20);
@@ -238,16 +326,134 @@ export function createArkanoidGame(
     let lifeIconX = canvas.width - 10 - lifeIconR;
     const lifeIconY = 20 - lifeIconR;
     for (let i = 0; i < state.lives; i++) {
+      if (currentSkin.mode === "sprite") {
+        drawSprite(
+          ctx!,
+          "ball",
+          lifeIconX - lifeIconR,
+          lifeIconY,
+          lifeIconR * 2,
+          lifeIconR * 2,
+        );
+      } else {
+        ctx!.save();
+        if (currentSkin.glow) {
+          ctx!.shadowBlur = 8;
+          ctx!.shadowColor = currentSkin.ballColor;
+        }
+        ctx!.fillStyle = currentSkin.ballColor;
+        ctx!.beginPath();
+        ctx!.arc(
+          lifeIconX - lifeIconR,
+          lifeIconY + lifeIconR,
+          lifeIconR,
+          0,
+          Math.PI * 2,
+        );
+        ctx!.fill();
+        ctx!.restore();
+      }
+      lifeIconX -= lifeIconR * 2 + lifeIconGap;
+    }
+  }
+
+  function drawBrick(brick: Brick) {
+    if (currentSkin.mode === "sprite") {
+      drawSprite(
+        ctx!,
+        `block_${brick.color}`,
+        brick.x,
+        brick.y,
+        brick.w,
+        brick.h,
+      );
+      return;
+    }
+
+    const color = currentSkin.brickPalette[brick.color];
+    ctx!.save();
+    if (currentSkin.glow) {
+      ctx!.shadowBlur = 12;
+      ctx!.shadowColor = color;
+    }
+    ctx!.fillStyle = color;
+    ctx!.fillRect(brick.x, brick.y, brick.w, brick.h);
+
+    if (currentSkin.strokeOutline) {
+      ctx!.shadowBlur = 0;
+      ctx!.strokeStyle = color;
+      ctx!.lineWidth = 2;
+      ctx!.strokeRect(brick.x + 1, brick.y + 1, brick.w - 2, brick.h - 2);
+    }
+
+    if (currentSkin.brickHighlight) {
+      ctx!.shadowBlur = 0;
+      ctx!.fillStyle = "rgba(255, 255, 255, 0.35)";
+      ctx!.fillRect(brick.x, brick.y, brick.w, 4);
+    }
+    ctx!.restore();
+  }
+
+  function drawPaddle() {
+    if (currentSkin.mode === "sprite") {
+      drawSprite(
+        ctx!,
+        "paddle",
+        state.paddle.x,
+        state.paddle.y,
+        state.paddle.w,
+        state.paddle.h,
+      );
+      return;
+    }
+    ctx!.save();
+    if (currentSkin.glow) {
+      ctx!.shadowBlur = 10;
+      ctx!.shadowColor = currentSkin.paddleColor;
+    }
+    ctx!.fillStyle = currentSkin.paddleColor;
+    ctx!.fillRect(
+      state.paddle.x,
+      state.paddle.y,
+      state.paddle.w,
+      state.paddle.h,
+    );
+    if (currentSkin.strokeOutline) {
+      ctx!.shadowBlur = 0;
+      ctx!.strokeStyle = currentSkin.paddleColor;
+      ctx!.lineWidth = 2;
+      ctx!.strokeRect(
+        state.paddle.x + 1,
+        state.paddle.y + 1,
+        state.paddle.w - 2,
+        state.paddle.h - 2,
+      );
+    }
+    ctx!.restore();
+  }
+
+  function drawBall() {
+    if (currentSkin.mode === "sprite") {
       drawSprite(
         ctx!,
         "ball",
-        lifeIconX - lifeIconR,
-        lifeIconY,
-        lifeIconR * 2,
-        lifeIconR * 2,
+        state.ball.x - state.ball.r,
+        state.ball.y - state.ball.r,
+        state.ball.r * 2,
+        state.ball.r * 2,
       );
-      lifeIconX -= lifeIconR * 2 + lifeIconGap;
+      return;
     }
+    ctx!.save();
+    if (currentSkin.glow) {
+      ctx!.shadowBlur = 10;
+      ctx!.shadowColor = currentSkin.ballColor;
+    }
+    ctx!.fillStyle = currentSkin.ballColor;
+    ctx!.beginPath();
+    ctx!.arc(state.ball.x, state.ball.y, state.ball.r, 0, Math.PI * 2);
+    ctx!.fill();
+    ctx!.restore();
   }
 
   function drawExplosions(timestamp: number) {
@@ -271,37 +477,20 @@ export function createArkanoidGame(
 
   function draw(timestamp: number) {
     ctx!.clearRect(0, 0, canvas.width, canvas.height);
+    if (currentSkin.boardBg) {
+      ctx!.fillStyle = currentSkin.boardBg;
+      ctx!.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     for (const brick of state.bricks) {
       if (!brick.alive) continue;
-      drawSprite(
-        ctx!,
-        `block_${brick.color}`,
-        brick.x,
-        brick.y,
-        brick.w,
-        brick.h,
-      );
+      drawBrick(brick);
     }
 
     drawExplosions(timestamp);
 
-    drawSprite(
-      ctx!,
-      "paddle",
-      state.paddle.x,
-      state.paddle.y,
-      state.paddle.w,
-      state.paddle.h,
-    );
-    drawSprite(
-      ctx!,
-      "ball",
-      state.ball.x - state.ball.r,
-      state.ball.y - state.ball.r,
-      state.ball.r * 2,
-      state.ball.r * 2,
-    );
+    drawPaddle();
+    drawBall();
 
     drawHud();
 
@@ -573,6 +762,9 @@ export function createArkanoidGame(
       window.removeEventListener("keyup", onKeyUp);
       canvas.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("click", onClick);
+    },
+    setSkin(nextSkinKey: string) {
+      currentSkin = SKINS[nextSkinKey] ?? SKINS.classic;
     },
   };
 }

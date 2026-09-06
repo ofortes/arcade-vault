@@ -16,8 +16,10 @@ export default function GamePlayer({ game }: { game: Game }) {
   const engine = getGameEngine(game.id);
   const isRealGame = !!engine;
   const isTetris = game.id === "tetris";
+  const availableSkins = engine?.skins ?? [];
 
   const [paused, setPaused] = useState(false);
+  const [skinKey, setSkinKey] = useState(availableSkins[0] ?? "classic");
   const [over, setOver] = useState(false);
   const [name, setName] = useState("INVITADO");
   const [saved, setSaved] = useState(false);
@@ -39,22 +41,31 @@ export default function GamePlayer({ game }: { game: Game }) {
 
   useEffect(() => {
     if (!engine || !canvasRef.current) return;
-    const handle = engine.create(canvasRef.current, {
-      onScoreChange: setScore,
-      onLivesChange: setLives,
-      onLevelChange: setLevel,
-      onGameOver: (final) => {
-        setFinalScore(final);
-        setOver(true);
+    const handle = engine.create(
+      canvasRef.current,
+      {
+        onScoreChange: setScore,
+        onLivesChange: setLives,
+        onLevelChange: setLevel,
+        onGameOver: (final) => {
+          setFinalScore(final);
+          setOver(true);
+        },
+        onPauseChange: setPaused,
       },
-      onPauseChange: setPaused,
-    });
+      skinKey,
+    );
     handleRef.current = handle;
     return () => {
       handle.destroy();
       handleRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine]);
+
+  useEffect(() => {
+    handleRef.current?.setSkin?.(skinKey);
+  }, [skinKey]);
 
   const togglePause = () => {
     setPaused((p) => {
@@ -100,6 +111,20 @@ export default function GamePlayer({ game }: { game: Game }) {
           </div>
         </div>
         <div className="hud-actions">
+          {availableSkins.length > 1 && (
+            <div style={{ display: "flex", gap: 6 }}>
+              {availableSkins.map((s) => (
+                <button
+                  key={s}
+                  className={`btn ${skinKey === s ? "yellow" : "ghost"}`}
+                  onClick={() => setSkinKey(s)}
+                  style={{ textTransform: "uppercase" }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
           <button className="btn yellow" onClick={togglePause}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>

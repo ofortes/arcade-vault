@@ -20,12 +20,50 @@ const TICK_STEP = 12;
 const FRUITS_PER_LEVEL = 5;
 const POINTS_PER_FRUIT = 10;
 
-const BG = "#1a1a25";
-const GRID_LINE = "#22222e";
-const SNAKE_BODY = "#7ec850";
-const SNAKE_HEAD = "#a3e635";
-
 const FRUIT_NAMES = Object.keys(FRUITS);
+
+interface Skin {
+  boardBg: string;
+  gridLine: string;
+  snakeHead: string;
+  snakeBody: string;
+  /** Highlight sutil al tope de cada segmento (retro). */
+  segmentHighlight?: string;
+  /** Glow neon: shadowBlur + shadowColor en cabeza/cuerpo/fruta. */
+  glow?: boolean;
+  glowColor?: string;
+  /** Contorno brillante adicional (neon). */
+  segmentStroke?: string;
+  cornerRadius: number;
+}
+
+const SKINS: Record<string, Skin> = {
+  classic: {
+    boardBg: "#1a1a25",
+    gridLine: "#22222e",
+    snakeHead: "#a3e635",
+    snakeBody: "#39ff14",
+    cornerRadius: 6,
+  },
+  retro: {
+    boardBg: "#221f3d",
+    gridLine: "#3a3566",
+    snakeHead: "#ffd23f",
+    snakeBody: "#f4845f",
+    segmentHighlight: "rgba(255, 255, 255, 0.35)",
+    cornerRadius: 2,
+  },
+  neon: {
+    boardBg: "#000000",
+    gridLine: "#1a0033",
+    snakeHead: "#00f0ff",
+    snakeBody: "#ff00e6",
+    glow: true,
+    glowColor: "#00f0ff",
+    segmentStroke: "#ffffff",
+    cornerRadius: 4,
+  },
+};
 
 interface Vec {
   x: number;
@@ -43,9 +81,12 @@ type Status = "playing" | "gameover";
 export function createSnakeGame(
   canvas: HTMLCanvasElement,
   callbacks: GameEngineCallbacks,
+  skinKey?: string,
 ): GameEngineHandle {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("No se pudo obtener el contexto 2D del canvas");
+
+  let currentSkin: Skin = SKINS[skinKey ?? "classic"] ?? SKINS.classic;
 
   let snake: Vec[];
   let direction: Vec;
@@ -125,15 +166,38 @@ export function createSnakeGame(
     const px = x * CELL + pad;
     const py = y * CELL + pad;
     const size = CELL - pad * 2;
-    const r = 6;
+    const r = currentSkin.cornerRadius;
+
+    if (currentSkin.glow) {
+      ctx!.save();
+      ctx!.shadowBlur = 12;
+      ctx!.shadowColor = currentSkin.glowColor ?? color;
+    }
+
     ctx!.fillStyle = color;
     ctx!.beginPath();
     ctx!.roundRect(px, py, size, size, r);
     ctx!.fill();
+
+    if (currentSkin.glow) {
+      ctx!.restore();
+      if (currentSkin.segmentStroke) {
+        ctx!.strokeStyle = currentSkin.segmentStroke;
+        ctx!.lineWidth = 1.5;
+        ctx!.beginPath();
+        ctx!.roundRect(px, py, size, size, r);
+        ctx!.stroke();
+      }
+    }
+
+    if (currentSkin.segmentHighlight) {
+      ctx!.fillStyle = currentSkin.segmentHighlight;
+      ctx!.fillRect(px, py, size, 4);
+    }
   }
 
   function drawGrid() {
-    ctx!.strokeStyle = GRID_LINE;
+    ctx!.strokeStyle = currentSkin.gridLine;
     ctx!.lineWidth = 0.5;
     for (let c = 1; c < GRID; c++) {
       ctx!.beginPath();
@@ -150,14 +214,26 @@ export function createSnakeGame(
   }
 
   function draw() {
-    ctx!.fillStyle = BG;
+    ctx!.fillStyle = currentSkin.boardBg;
     ctx!.fillRect(0, 0, canvas.width, canvas.height);
     drawGrid();
 
-    drawFruit(ctx!, food.fruit, food.x * CELL, food.y * CELL, CELL, CELL);
+    if (currentSkin.glow) {
+      ctx!.save();
+      ctx!.shadowBlur = 10;
+      ctx!.shadowColor = "#ffffff";
+      drawFruit(ctx!, food.fruit, food.x * CELL, food.y * CELL, CELL, CELL);
+      ctx!.restore();
+    } else {
+      drawFruit(ctx!, food.fruit, food.x * CELL, food.y * CELL, CELL, CELL);
+    }
 
     snake.forEach((segment, i) => {
-      drawRoundedCell(segment.x, segment.y, i === 0 ? SNAKE_HEAD : SNAKE_BODY);
+      drawRoundedCell(
+        segment.x,
+        segment.y,
+        i === 0 ? currentSkin.snakeHead : currentSkin.snakeBody,
+      );
     });
   }
 
@@ -276,6 +352,10 @@ export function createSnakeGame(
       tickAccum = 0;
       draw();
       reportState();
+    },
+    setSkin(nextSkinKey: string) {
+      currentSkin = SKINS[nextSkinKey] ?? SKINS.classic;
+      if (running) draw();
     },
     destroy() {
       running = false;
