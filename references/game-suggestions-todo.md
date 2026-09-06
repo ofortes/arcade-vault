@@ -29,4 +29,13 @@
 - [ ] Duelo de Arqueros (VERSUS) — disparo de flechas por turnos ajustando ángulo y potencia contra IA, tipo tiro parabólico; mecánica de puntería por turnos, ausente en VERSUS. _(sugerido: 2026-09-06)_
 - [ ] Carrera de Reflejos (VERSUS) — QTE de reacción rápida donde gana quien presiona la tecla correcta primero, mejor de N rondas contra IA; mecánica de reflejos puros, distinta a las demás de VERSUS. _(sugerido: 2026-09-06)_
 
+## Aceptados
+
+## Implementados
+
+- [x] Asteroides (SHOOTER) — `asteroides`, ya en `lib/games/registry.ts`.
+- [x] Tetris (PUZZLE) — `tetris`, ya en `lib/games/registry.ts`.
+- [x] Arkanoid (ARCADE) — `arkanoid`, ya en `lib/games/registry.ts`.
+- [x] Snake (ARCADE) — `snake`, ya en `lib/games/registry.ts`.
+
 ## Descartadas
