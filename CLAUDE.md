@@ -30,6 +30,10 @@ Rutas clave: `/juegos` (biblioteca), `/juegos/[id]` (ficha), `/juegos/[id]/jugar
 
 Usa siempre /front-design para hacer interfaz de usuario.
 
+## Agentes
+
+- **game-planner** (`.claude/agents/game-planner.md`) — analiza el catálogo actual (`lib/games-types.ts`, `lib/games/registry.ts`) y decide qué juego(s) nuevos encajarían con la plataforma. No escribe specs ni código: solo propone ideas justificadas y las guarda en `references/game-suggestions-todo.md` para no repetirlas en futuras invocaciones. Invocalo cuando quieras evaluar el próximo juego a portar antes de correr `/add-game`.
+
 ## Stack
 
 - Next.js 16.3.4 (App Router only — no `pages/` directory), React 19.2, TypeScript (strict mode), Tailwind CSS v4 (via `@tailwindcss/postcss`, configured in `app/globals.css`, no `tailwind.config.*` file)
