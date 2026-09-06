@@ -33,6 +33,7 @@ Usa siempre /front-design para hacer interfaz de usuario.
 ## Agentes
 
 - **game-planner** (`.claude/agents/game-planner.md`) — analiza el catálogo actual (`lib/games-types.ts`, `lib/games/registry.ts`) y decide qué juego(s) nuevos encajarían con la plataforma. No escribe specs ni código: solo propone ideas justificadas y las guarda en `references/game-suggestions-todo.md` para no repetirlas en futuras invocaciones. Invocalo cuando quieras evaluar el próximo juego a portar antes de correr `/add-game`.
+- **game-jam** (`.claude/agents/game-jam.md`) — recibe un tema de game jam y genera tres specs completas (formato de `specs/07-tetris-game.md`/`08-arkanoid-game.md`/`09-snake-game.md`) en `specs/game-jam/[game-id]/spec.md`, con `Estado: Propuesto`. No implementa código ni ejecuta SQL. Úsalo para explorar rápido varias ideas de juego a partir de un tema antes de decidir cuál implementar.
 
 ## Stack
 
