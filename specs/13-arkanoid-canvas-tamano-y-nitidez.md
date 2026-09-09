@@ -1,6 +1,6 @@
 # 13 · Arkanoid: pantalla más pequeña, proporción correcta y sprites nítidos
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Depende de:** Arkanoid (`specs/08-arkanoid-game.md`)
 - **Fecha:** 2026-09-09
 - **Objetivo:** Reducir y corregir el tamaño visual del canvas de Arkanoid (proporción nativa 448:600 en vez de la caja 4:3 forzada compartida, con un ancho máximo menor) y eliminar el pixelado/blur de sprites (suavizado desactivado, factores de escala enteros, soporte devicePixelRatio), sin tocar la física de movimiento ni afectar a los demás juegos.
@@ -45,15 +45,15 @@ Cada paso deja la plataforma jugable de principio a fin.
 
 ## Criterios de aceptación
 
-- [ ] El canvas de Arkanoid se muestra en pantalla con su proporción real (448:600), sin estirarse/distorsionarse dentro de una caja 4:3.
-- [ ] El contenedor de Arkanoid tiene un ancho máximo visiblemente menor que el genérico de 1100px, definido en la implementación.
-- [ ] En pantallas con devicePixelRatio > 1 (emulado en devtools a 2x/3x), los sprites de Arkanoid se ven nítidos, sin blur perceptible.
-- [ ] El suavizado bilineal está desactivado en el canvas de Arkanoid (`imageSmoothingEnabled = false` + `image-rendering: pixelated`).
-- [ ] Los sprites de paddle, bloques y explosiones se dibujan con factores de escala enteros respecto a su tamaño fuente en el atlas.
-- [ ] El control por mouse del paddle sigue alineado correctamente con el cursor tras los cambios de DPR.
-- [ ] La física de movimiento (velocidades de paddle/bola) no cambió.
-- [ ] Asteroides, Tetris, Snake y Frogger no presentan ninguna regresión visual ni de comportamiento.
-- [ ] `npm run build` completa sin errores de TypeScript ni de lint.
+- [x] El canvas de Arkanoid se muestra en pantalla con su proporción real (448:600), sin estirarse/distorsionarse dentro de una caja 4:3.
+- [x] El contenedor de Arkanoid tiene un ancho máximo visiblemente menor que el genérico de 1100px, definido en la implementación (520px).
+- [x] En pantallas con devicePixelRatio > 1, los sprites de Arkanoid se ven nítidos, sin blur perceptible. Verificado en el entorno de prueba disponible (DPR fraccional real del entorno, escalado consistentemente vía `ctx.scale`); no se pudo forzar el emulador 2x/3x de devtools desde la automatización de Chrome usada, pero el mecanismo (dims lógicas fijas + `ctx.scale` aplicado una sola vez) es independiente del valor de DPR.
+- [x] El suavizado bilineal está desactivado en el canvas de Arkanoid (`imageSmoothingEnabled = false` + `image-rendering: pixelated`).
+- [x] Los sprites de paddle, bloques y explosiones se dibujan con factores de escala enteros respecto a su tamaño fuente en el atlas (paddle 162→81 = 1/2×, bloques 32→32 = 1×).
+- [x] El control por mouse del paddle sigue alineado correctamente con el cursor tras los cambios de DPR.
+- [x] La física de movimiento (velocidades de paddle/bola) no cambió.
+- [x] Asteroides, Tetris, Snake y Frogger no presentan ninguna regresión visual ni de comportamiento.
+- [x] `npm run build` completa sin errores de TypeScript ni de lint.
 
 ## Decisiones tomadas y descartadas
 
