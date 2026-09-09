@@ -336,8 +336,12 @@ export function createArkanoidGame(
           lifeIconR * 2,
         );
       } else {
-        ctx!.save();
-        if (currentSkin.glow) {
+        // Mismo criterio que en drawBrick: save()/restore() solo cuando el
+        // skin tiene glow, para no pagar el costo por cada uno de hasta 3
+        // iconos de vida por frame.
+        const glow = currentSkin.glow;
+        if (glow) {
+          ctx!.save();
           ctx!.shadowBlur = 8;
           ctx!.shadowColor = currentSkin.ballColor;
         }
@@ -351,7 +355,7 @@ export function createArkanoidGame(
           Math.PI * 2,
         );
         ctx!.fill();
-        ctx!.restore();
+        if (glow) ctx!.restore();
       }
       lifeIconX -= lifeIconR * 2 + lifeIconGap;
     }
@@ -371,8 +375,15 @@ export function createArkanoidGame(
     }
 
     const color = currentSkin.brickPalette[brick.color];
-    ctx!.save();
-    if (currentSkin.glow) {
+    const glow = currentSkin.glow;
+    // ctx.save()/ctx.restore() se llaman solo cuando el skin tiene glow
+    // (única condición que necesita aislar shadowBlur/shadowColor); el resto
+    // de propiedades (fillStyle, strokeStyle, lineWidth) se sobreescriben en
+    // cada llamada, así que no hace falta empujar/restaurar la pila de
+    // contexto por cada uno de hasta 80 ladrillos por frame. Mismo patrón
+    // que drawEntity en components/games/FroggerGame.tsx.
+    if (glow) {
+      ctx!.save();
       ctx!.shadowBlur = 12;
       ctx!.shadowColor = color;
     }
@@ -380,18 +391,18 @@ export function createArkanoidGame(
     ctx!.fillRect(brick.x, brick.y, brick.w, brick.h);
 
     if (currentSkin.strokeOutline) {
-      ctx!.shadowBlur = 0;
+      if (glow) ctx!.shadowBlur = 0;
       ctx!.strokeStyle = color;
       ctx!.lineWidth = 2;
       ctx!.strokeRect(brick.x + 1, brick.y + 1, brick.w - 2, brick.h - 2);
     }
 
     if (currentSkin.brickHighlight) {
-      ctx!.shadowBlur = 0;
+      if (glow) ctx!.shadowBlur = 0;
       ctx!.fillStyle = "rgba(255, 255, 255, 0.35)";
       ctx!.fillRect(brick.x, brick.y, brick.w, 4);
     }
-    ctx!.restore();
+    if (glow) ctx!.restore();
   }
 
   function drawPaddle() {
@@ -475,6 +486,35 @@ export function createArkanoidGame(
     }
   }
 
+  const DEV_FPS_OVERLAY = process.env.NODE_ENV === "development";
+  let fpsInstant = 0;
+  let fpsAvg = 0;
+  let fpsMin = Infinity;
+  let fpsFrameCount = 0;
+  let fpsElapsedMs = 0;
+  let fpsLastTime: number | null = null;
+
+  function drawFpsOverlay() {
+    const w = 160;
+    const h = 18;
+    const x = canvas.width - w;
+    const y = canvas.height - h;
+    ctx!.save();
+    ctx!.fillStyle = "rgba(0,0,0,0.6)";
+    ctx!.fillRect(x, y, w, h);
+    ctx!.font = "11px monospace";
+    ctx!.textAlign = "right";
+    ctx!.textBaseline = "middle";
+    ctx!.fillStyle = "#00ff6a";
+    const min = fpsMin === Infinity ? 0 : fpsMin;
+    ctx!.fillText(
+      `FPS ${fpsInstant.toFixed(0)} avg ${fpsAvg.toFixed(0)} min ${min.toFixed(0)}`,
+      x + w - 6,
+      y + h / 2 + 1,
+    );
+    ctx!.restore();
+  }
+
   function draw(timestamp: number) {
     ctx!.clearRect(0, 0, canvas.width, canvas.height);
     if (currentSkin.boardBg) {
@@ -508,6 +548,8 @@ export function createArkanoidGame(
     } else if (state.status === "lose") {
       drawOverlay("Game Over", "Pulsa espacio o haz clic para volver a jugar");
     }
+
+    if (DEV_FPS_OVERLAY) drawFpsOverlay();
   }
 
   function launchBall() {
@@ -730,6 +772,17 @@ export function createArkanoidGame(
 
   function loop(timestamp: number) {
     if (!running) return;
+    if (DEV_FPS_OVERLAY) {
+      const dt = fpsLastTime === null ? 0 : timestamp - fpsLastTime;
+      fpsLastTime = timestamp;
+      if (dt > 0 && dt < 250) {
+        fpsInstant = 1000 / dt;
+        fpsFrameCount += 1;
+        fpsElapsedMs += dt;
+        fpsAvg = (fpsFrameCount / fpsElapsedMs) * 1000;
+        if (fpsInstant < fpsMin) fpsMin = fpsInstant;
+      }
+    }
     update(timestamp);
     draw(timestamp);
     reportState();
