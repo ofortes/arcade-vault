@@ -17,6 +17,7 @@ export default function GamePlayer({ game }: { game: Game }) {
   const isRealGame = !!engine;
   const isTetris = game.id === "tetris";
   const availableSkins = engine?.skins ?? [];
+  const screenConfig = engine?.screen;
 
   const [paused, setPaused] = useState(false);
   const [skinKey, setSkinKey] = useState(availableSkins[0] ?? "classic");
@@ -139,8 +140,20 @@ export default function GamePlayer({ game }: { game: Game }) {
         </div>
       </div>
 
-      <div className="crt">
-        <div className="crt-screen">
+      <div
+        className="crt"
+        style={
+          screenConfig
+            ? { maxWidth: screenConfig.maxWidth, margin: "0 auto" }
+            : undefined
+        }
+      >
+        <div
+          className="crt-screen"
+          style={
+            screenConfig ? { aspectRatio: screenConfig.aspectRatio } : undefined
+          }
+        >
           {engine ? (
             <canvas
               ref={canvasRef}
@@ -151,6 +164,9 @@ export default function GamePlayer({ game }: { game: Game }) {
                 inset: 0,
                 width: "100%",
                 height: "100%",
+                ...(screenConfig
+                  ? { imageRendering: "pixelated" as const }
+                  : null),
               }}
             />
           ) : (

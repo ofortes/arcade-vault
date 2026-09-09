@@ -166,12 +166,16 @@ const BRICK_COLS = 8;
 const BRICK_POINTS = 10;
 const INITIAL_LIVES = 3;
 
-const BRICK_W = 48;
-const BRICK_H = 20;
+// Tamaño de bloque = tamaño fuente en el atlas (32x16, escala 1x). Escalar a
+// 2x (64x16) desbordaría el ancho del tablero (8 cols x 64 + gaps > 448).
+const BRICK_W = 32;
+const BRICK_H = 16;
 const BRICK_GAP = 4;
 const BRICK_OFFSET_Y = 40;
 
-const PADDLE_W = 80;
+// Paddle fuente en el atlas: 162x14. Ancho a mitad exacta (escala 1/2x, el
+// factor entero más cercano al ancho de juego original de 80).
+const PADDLE_W = 81;
 const PADDLE_H = 14;
 
 const BALL_R = 8;
@@ -205,11 +209,24 @@ export function createArkanoidGame(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("No se pudo obtener el contexto 2D del canvas");
 
+  // El motor trabaja siempre en coordenadas lógicas (448x600, el tamaño con
+  // el que se monta el canvas). El backing store físico se escala por DPR
+  // para nitidez en pantallas de alta densidad; ctx.scale compensa esa
+  // escala una sola vez para que el resto del código no tenga que saber de
+  // DPR.
+  const LOGICAL_WIDTH = canvas.width;
+  const LOGICAL_HEIGHT = canvas.height;
+  const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+  canvas.width = LOGICAL_WIDTH * dpr;
+  canvas.height = LOGICAL_HEIGHT * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.imageSmoothingEnabled = false;
+
   let currentSkin: Skin = SKINS[skinKey ?? "classic"] ?? SKINS.classic;
 
-  const PADDLE_Y = canvas.height - 40;
+  const PADDLE_Y = LOGICAL_HEIGHT - 40;
   const BRICK_OFFSET_X =
-    (canvas.width - (BRICK_COLS * BRICK_W + (BRICK_COLS - 1) * BRICK_GAP)) / 2;
+    (LOGICAL_WIDTH - (BRICK_COLS * BRICK_W + (BRICK_COLS - 1) * BRICK_GAP)) / 2;
 
   const ballBounceSound =
     typeof Audio !== "undefined"
@@ -232,13 +249,13 @@ export function createArkanoidGame(
     lives: INITIAL_LIVES,
     level: 1,
     paddle: {
-      x: (canvas.width - PADDLE_W) / 2,
+      x: (LOGICAL_WIDTH - PADDLE_W) / 2,
       y: PADDLE_Y,
       w: PADDLE_W,
       h: PADDLE_H,
     },
     ball: {
-      x: canvas.width / 2,
+      x: LOGICAL_WIDTH / 2,
       y: PADDLE_Y - BALL_R,
       vx: 0,
       vy: 0,
@@ -295,17 +312,17 @@ export function createArkanoidGame(
   function drawOverlay(title: string, subtitle?: string) {
     ctx!.save();
     ctx!.fillStyle = "rgba(0, 0, 0, 0.6)";
-    ctx!.fillRect(0, 0, canvas.width, canvas.height);
+    ctx!.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
     ctx!.fillStyle = "white";
     ctx!.textAlign = "center";
 
     ctx!.font = "bold 32px sans-serif";
-    ctx!.fillText(title, canvas.width / 2, canvas.height / 2 - 10);
+    ctx!.fillText(title, LOGICAL_WIDTH / 2, LOGICAL_HEIGHT / 2 - 10);
 
     if (subtitle) {
       ctx!.font = "16px sans-serif";
-      ctx!.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 24);
+      ctx!.fillText(subtitle, LOGICAL_WIDTH / 2, LOGICAL_HEIGHT / 2 + 24);
     }
     ctx!.restore();
   }
@@ -318,12 +335,12 @@ export function createArkanoidGame(
     ctx!.fillText(`Score: ${state.score}`, 10, 20);
 
     ctx!.textAlign = "center";
-    ctx!.fillText(`Nivel: ${state.level}`, canvas.width / 2, 20);
+    ctx!.fillText(`Nivel: ${state.level}`, LOGICAL_WIDTH / 2, 20);
     ctx!.restore();
 
     const lifeIconR = 8;
     const lifeIconGap = 6;
-    let lifeIconX = canvas.width - 10 - lifeIconR;
+    let lifeIconX = LOGICAL_WIDTH - 10 - lifeIconR;
     const lifeIconY = 20 - lifeIconR;
     for (let i = 0; i < state.lives; i++) {
       if (currentSkin.mode === "sprite") {
@@ -336,8 +353,12 @@ export function createArkanoidGame(
           lifeIconR * 2,
         );
       } else {
-        ctx!.save();
-        if (currentSkin.glow) {
+        // Mismo criterio que en drawBrick: save()/restore() solo cuando el
+        // skin tiene glow, para no pagar el costo por cada uno de hasta 3
+        // iconos de vida por frame.
+        const glow = currentSkin.glow;
+        if (glow) {
+          ctx!.save();
           ctx!.shadowBlur = 8;
           ctx!.shadowColor = currentSkin.ballColor;
         }
@@ -351,7 +372,7 @@ export function createArkanoidGame(
           Math.PI * 2,
         );
         ctx!.fill();
-        ctx!.restore();
+        if (glow) ctx!.restore();
       }
       lifeIconX -= lifeIconR * 2 + lifeIconGap;
     }
@@ -371,8 +392,15 @@ export function createArkanoidGame(
     }
 
     const color = currentSkin.brickPalette[brick.color];
-    ctx!.save();
-    if (currentSkin.glow) {
+    const glow = currentSkin.glow;
+    // ctx.save()/ctx.restore() se llaman solo cuando el skin tiene glow
+    // (única condición que necesita aislar shadowBlur/shadowColor); el resto
+    // de propiedades (fillStyle, strokeStyle, lineWidth) se sobreescriben en
+    // cada llamada, así que no hace falta empujar/restaurar la pila de
+    // contexto por cada uno de hasta 80 ladrillos por frame. Mismo patrón
+    // que drawEntity en components/games/FroggerGame.tsx.
+    if (glow) {
+      ctx!.save();
       ctx!.shadowBlur = 12;
       ctx!.shadowColor = color;
     }
@@ -380,18 +408,18 @@ export function createArkanoidGame(
     ctx!.fillRect(brick.x, brick.y, brick.w, brick.h);
 
     if (currentSkin.strokeOutline) {
-      ctx!.shadowBlur = 0;
+      if (glow) ctx!.shadowBlur = 0;
       ctx!.strokeStyle = color;
       ctx!.lineWidth = 2;
       ctx!.strokeRect(brick.x + 1, brick.y + 1, brick.w - 2, brick.h - 2);
     }
 
     if (currentSkin.brickHighlight) {
-      ctx!.shadowBlur = 0;
+      if (glow) ctx!.shadowBlur = 0;
       ctx!.fillStyle = "rgba(255, 255, 255, 0.35)";
       ctx!.fillRect(brick.x, brick.y, brick.w, 4);
     }
-    ctx!.restore();
+    if (glow) ctx!.restore();
   }
 
   function drawPaddle() {
@@ -475,11 +503,40 @@ export function createArkanoidGame(
     }
   }
 
+  const DEV_FPS_OVERLAY = process.env.NODE_ENV === "development";
+  let fpsInstant = 0;
+  let fpsAvg = 0;
+  let fpsMin = Infinity;
+  let fpsFrameCount = 0;
+  let fpsElapsedMs = 0;
+  let fpsLastTime: number | null = null;
+
+  function drawFpsOverlay() {
+    const w = 160;
+    const h = 18;
+    const x = LOGICAL_WIDTH - w;
+    const y = LOGICAL_HEIGHT - h;
+    ctx!.save();
+    ctx!.fillStyle = "rgba(0,0,0,0.6)";
+    ctx!.fillRect(x, y, w, h);
+    ctx!.font = "11px monospace";
+    ctx!.textAlign = "right";
+    ctx!.textBaseline = "middle";
+    ctx!.fillStyle = "#00ff6a";
+    const min = fpsMin === Infinity ? 0 : fpsMin;
+    ctx!.fillText(
+      `FPS ${fpsInstant.toFixed(0)} avg ${fpsAvg.toFixed(0)} min ${min.toFixed(0)}`,
+      x + w - 6,
+      y + h / 2 + 1,
+    );
+    ctx!.restore();
+  }
+
   function draw(timestamp: number) {
-    ctx!.clearRect(0, 0, canvas.width, canvas.height);
+    ctx!.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
     if (currentSkin.boardBg) {
       ctx!.fillStyle = currentSkin.boardBg;
-      ctx!.fillRect(0, 0, canvas.width, canvas.height);
+      ctx!.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
     }
 
     for (const brick of state.bricks) {
@@ -508,11 +565,13 @@ export function createArkanoidGame(
     } else if (state.status === "lose") {
       drawOverlay("Game Over", "Pulsa espacio o haz clic para volver a jugar");
     }
+
+    if (DEV_FPS_OVERLAY) drawFpsOverlay();
   }
 
   function launchBall() {
     const speed = BALL_SPEED * LEVELS[state.level - 1].ballSpeedMultiplier;
-    state.ball.x = canvas.width / 2;
+    state.ball.x = LOGICAL_WIDTH / 2;
     state.ball.y = PADDLE_Y - BALL_R;
     state.ball.vx = speed * 0.6;
     state.ball.vy = -speed;
@@ -525,8 +584,8 @@ export function createArkanoidGame(
   }
 
   function resetBallAndPaddle() {
-    state.paddle.x = (canvas.width - state.paddle.w) / 2;
-    state.ball.x = canvas.width / 2;
+    state.paddle.x = (LOGICAL_WIDTH - state.paddle.w) / 2;
+    state.ball.x = LOGICAL_WIDTH / 2;
     state.ball.y = PADDLE_Y - BALL_R;
     state.ball.vx = 0;
     state.ball.vy = 0;
@@ -585,7 +644,7 @@ export function createArkanoidGame(
 
   const onMouseMove = (e: MouseEvent) => {
     const rect = canvas.getBoundingClientRect();
-    mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+    mouseX = (e.clientX - rect.left) * (LOGICAL_WIDTH / rect.width);
   };
 
   const onClick = () => {
@@ -598,7 +657,7 @@ export function createArkanoidGame(
   canvas.addEventListener("click", onClick);
 
   function clampPaddleX(x: number): number {
-    return Math.max(0, Math.min(canvas.width - state.paddle.w, x));
+    return Math.max(0, Math.min(LOGICAL_WIDTH - state.paddle.w, x));
   }
 
   function updatePaddle() {
@@ -670,7 +729,7 @@ export function createArkanoidGame(
 
   function checkFloorCollision() {
     const ball = state.ball;
-    if (ball.y - ball.r < canvas.height) return;
+    if (ball.y - ball.r < LOGICAL_HEIGHT) return;
 
     state.lives -= 1;
     if (state.lives > 0) {
@@ -690,8 +749,8 @@ export function createArkanoidGame(
       ball.x = ball.r;
       ball.vx *= -1;
       playSound(ballBounceSound);
-    } else if (ball.x + ball.r > canvas.width) {
-      ball.x = canvas.width - ball.r;
+    } else if (ball.x + ball.r > LOGICAL_WIDTH) {
+      ball.x = LOGICAL_WIDTH - ball.r;
       ball.vx *= -1;
       playSound(ballBounceSound);
     }
@@ -730,6 +789,17 @@ export function createArkanoidGame(
 
   function loop(timestamp: number) {
     if (!running) return;
+    if (DEV_FPS_OVERLAY) {
+      const dt = fpsLastTime === null ? 0 : timestamp - fpsLastTime;
+      fpsLastTime = timestamp;
+      if (dt > 0 && dt < 250) {
+        fpsInstant = 1000 / dt;
+        fpsFrameCount += 1;
+        fpsElapsedMs += dt;
+        fpsAvg = (fpsFrameCount / fpsElapsedMs) * 1000;
+        if (fpsInstant < fpsMin) fpsMin = fpsInstant;
+      }
+    }
     update(timestamp);
     draw(timestamp);
     reportState();

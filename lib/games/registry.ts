@@ -28,6 +28,7 @@ export interface GameEngineEntry {
   width: number;
   height: number;
   skins?: string[];
+  screen?: { aspectRatio: number; maxWidth: number };
 }
 
 export const gameEngines: Record<string, GameEngineEntry> = {
@@ -38,6 +39,7 @@ export const gameEngines: Record<string, GameEngineEntry> = {
     width: 448,
     height: 600,
     skins: ["classic", "retro", "neon"],
+    screen: { aspectRatio: 448 / 600, maxWidth: 520 },
   },
   snake: {
     create: createSnakeGame,
