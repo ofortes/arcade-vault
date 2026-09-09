@@ -8,6 +8,7 @@ interface FroggerGameProps {
   onLivesChange: (lives: number) => void;
   onLevelChange: (level: number) => void;
   onGameOver: (finalScore: number) => void;
+  skinKey?: string;
 }
 
 const COLS = 16;
@@ -128,6 +129,133 @@ const KEY_DIRECTIONS: Record<string, Direction> = {
   KeyD: "right",
 };
 
+// --- Skins -------------------------------------------------------------
+// FroggerGame no expone un handle imperativo (no hay createXGame()/
+// GameEngineHandle como en lib/games/<juego>/engine.ts): el juego vive
+// entero dentro de un useEffect por componente. El cambio de skin llega
+// como prop y se sincroniza a skinKeyRef (mismo patrón que pausedRef) para
+// que el loop de dibujo, que corre en el closure del efecto, siempre lea
+// la paleta activa sin necesitar remontar el canvas.
+interface Skin {
+  key: string;
+  laneBg: {
+    goals: string;
+    river: string;
+    safeMid: string;
+    road: string;
+    start: string;
+  };
+  car: string;
+  truck: string;
+  wheel: string;
+  log: string;
+  logLine: string;
+  turtle: string;
+  frogBody: string;
+  frogEyeWhite: string;
+  frogEyePupil: string;
+  goalBg: string;
+  goalBorder: string;
+  goalOccupied: string;
+  hudText: string;
+  timerGood: string;
+  timerWarn: string;
+  timerBad: string;
+  entityHighlight: boolean;
+  glow: boolean;
+}
+
+const SKINS: Record<string, Skin> = {
+  // Paleta arcade original del juego (colores ya usados antes de skins).
+  classic: {
+    key: "classic",
+    laneBg: {
+      goals: "#0b3d0b",
+      river: "#08243a",
+      safeMid: "#123318",
+      road: "#0a0a0a",
+      start: "#123318",
+    },
+    car: "#e11d48",
+    truck: "#6b7280",
+    wheel: "#111827",
+    log: "#7c4a1e",
+    logLine: "#5a3413",
+    turtle: "#22c55e",
+    frogBody: "#39ff14",
+    frogEyeWhite: "#ffffff",
+    frogEyePupil: "#111827",
+    goalBg: "#14532d",
+    goalBorder: "#eab308",
+    goalOccupied: "#4ade80",
+    hudText: "#ffffff",
+    timerGood: "#22c55e",
+    timerWarn: "#eab308",
+    timerBad: "#ef4444",
+    entityHighlight: false,
+    glow: false,
+  },
+  // CRT: colores saturados/pastel sin brillo, con línea de luz sutil al
+  // tope de vehículos/troncos/tortugas.
+  retro: {
+    key: "retro",
+    laneBg: {
+      goals: "#2d5940",
+      river: "#1f3a52",
+      safeMid: "#355c3f",
+      road: "#2b2b2b",
+      start: "#355c3f",
+    },
+    car: "#d4574a",
+    truck: "#9a8f7a",
+    wheel: "#2b2b2b",
+    log: "#a97a4a",
+    logLine: "#7a5530",
+    turtle: "#5cad6b",
+    frogBody: "#8fce6a",
+    frogEyeWhite: "#f5f0e6",
+    frogEyePupil: "#2b2b2b",
+    goalBg: "#254a33",
+    goalBorder: "#e0c15c",
+    goalOccupied: "#8fce6a",
+    hudText: "#f5f0e6",
+    timerGood: "#5cad6b",
+    timerWarn: "#e0c15c",
+    timerBad: "#d4574a",
+    entityHighlight: true,
+    glow: false,
+  },
+  // Eléctrico: fondo casi negro por zona, shadowBlur + contornos brillantes.
+  neon: {
+    key: "neon",
+    laneBg: {
+      goals: "#001208",
+      river: "#00050f",
+      safeMid: "#00060a",
+      road: "#050505",
+      start: "#00060a",
+    },
+    car: "#ff2b4d",
+    truck: "#c92bff",
+    wheel: "#000000",
+    log: "#ffae42",
+    logLine: "#7a4a00",
+    turtle: "#2bff6a",
+    frogBody: "#39ff14",
+    frogEyeWhite: "#ffffff",
+    frogEyePupil: "#000000",
+    goalBg: "#001a08",
+    goalBorder: "#2bf5ff",
+    goalOccupied: "#2bff6a",
+    hudText: "#00fff2",
+    timerGood: "#2bff6a",
+    timerWarn: "#faff2b",
+    timerBad: "#ff2b4d",
+    entityHighlight: false,
+    glow: true,
+  },
+};
+
 interface Goal {
   col: number;
   occupied: boolean;
@@ -151,13 +279,19 @@ export default function FroggerGame({
   onLivesChange,
   onLevelChange,
   onGameOver,
+  skinKey = "classic",
 }: FroggerGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(paused);
+  const skinKeyRef = useRef(skinKey);
 
   useEffect(() => {
     pausedRef.current = paused;
   }, [paused]);
+
+  useEffect(() => {
+    skinKeyRef.current = skinKey;
+  }, [skinKey]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -348,7 +482,7 @@ export default function FroggerGame({
     function updateLanes(dt: number) {
       lanes.forEach((lane) => {
         lane.entities.forEach((entity) => {
-          entity.col += (lane.speed * lane.dir * dt) / 16;
+          entity.col += (lane.speed * lane.dir * dt) / 16 / CELL;
           if (lane.dir === 1 && entity.col > COLS) {
             entity.col = -entity.width;
           } else if (lane.dir === -1 && entity.col + entity.width < 0) {
@@ -392,7 +526,7 @@ export default function FroggerGame({
           killFrog();
           return;
         }
-        frog.col += (support.lane.speed * support.lane.dir * dt) / 16;
+        frog.col += (support.lane.speed * support.lane.dir * dt) / 16 / CELL;
         if (frog.col < 0 || frog.col >= COLS) {
           killFrog();
         }
@@ -417,31 +551,58 @@ export default function FroggerGame({
       updateTimer(dt);
     }
 
-    function laneBg(row: number) {
-      if (row === ROW_GOALS) return "#0b3d0b";
-      if (row >= ROW_RIVER_TOP && row <= ROW_RIVER_BOT) return "#08243a";
-      if (row === ROW_SAFE_MID) return "#123318";
-      if (row >= ROW_ROAD_TOP && row <= ROW_ROAD_BOT) return "#0a0a0a";
-      return "#123318"; // ROW_START
+    function activeSkin(): Skin {
+      return SKINS[skinKeyRef.current] ?? SKINS.classic;
     }
 
-    function drawEntity(entity: Entity, row: number) {
+    function laneBg(row: number, skin: Skin) {
+      if (row === ROW_GOALS) return skin.laneBg.goals;
+      if (row >= ROW_RIVER_TOP && row <= ROW_RIVER_BOT)
+        return skin.laneBg.river;
+      if (row === ROW_SAFE_MID) return skin.laneBg.safeMid;
+      if (row >= ROW_ROAD_TOP && row <= ROW_ROAD_BOT) return skin.laneBg.road;
+      return skin.laneBg.start; // ROW_START
+    }
+
+    function drawEntity(entity: Entity, row: number, skin: Skin) {
       const x = entity.col * CELL;
       const y = row * CELL;
       const w = entity.width * CELL;
       const h = CELL;
+      ctx!.save();
+      if (skin.glow) {
+        ctx!.shadowBlur = 10;
+        ctx!.shadowColor =
+          entity.type === "car" || entity.type === "truck"
+            ? entity.type === "truck"
+              ? skin.truck
+              : skin.car
+            : entity.type === "log"
+              ? skin.log
+              : skin.turtle;
+      }
       if (entity.type === "car" || entity.type === "truck") {
-        ctx!.fillStyle = entity.type === "truck" ? "#6b7280" : "#e11d48";
+        ctx!.fillStyle = entity.type === "truck" ? skin.truck : skin.car;
         ctx!.fillRect(x + 3, y + 8, w - 6, h - 16);
-        ctx!.fillStyle = "#111827";
+        if (skin.entityHighlight) {
+          ctx!.fillStyle = "rgba(255, 255, 255, 0.35)";
+          ctx!.fillRect(x + 3, y + 8, w - 6, 4);
+        }
+        ctx!.shadowBlur = 0;
+        ctx!.fillStyle = skin.wheel;
         ctx!.beginPath();
         ctx!.arc(x + 10, y + h - 8, 5, 0, Math.PI * 2);
         ctx!.arc(x + w - 10, y + h - 8, 5, 0, Math.PI * 2);
         ctx!.fill();
       } else if (entity.type === "log") {
-        ctx!.fillStyle = "#7c4a1e";
+        ctx!.fillStyle = skin.log;
         ctx!.fillRect(x + 2, y + 8, w - 4, h - 16);
-        ctx!.strokeStyle = "#5a3413";
+        if (skin.entityHighlight) {
+          ctx!.fillStyle = "rgba(255, 255, 255, 0.35)";
+          ctx!.fillRect(x + 2, y + 8, w - 4, 4);
+        }
+        ctx!.shadowBlur = 0;
+        ctx!.strokeStyle = skin.logLine;
         ctx!.lineWidth = 1;
         for (let i = 1; i < entity.width; i++) {
           ctx!.beginPath();
@@ -452,7 +613,7 @@ export default function FroggerGame({
       } else {
         // turtle
         ctx!.globalAlpha = entity.submerged ? 0.3 : 1;
-        ctx!.fillStyle = "#22c55e";
+        ctx!.fillStyle = skin.turtle;
         for (let i = 0; i < entity.width; i++) {
           ctx!.beginPath();
           ctx!.arc(
@@ -466,28 +627,37 @@ export default function FroggerGame({
         }
         ctx!.globalAlpha = 1;
       }
+      ctx!.restore();
     }
 
-    function drawGoals() {
+    function drawGoals(skin: Skin) {
       goals.forEach((goal) => {
         const x = goal.col * CELL;
         const y = ROW_GOALS * CELL;
         const w = GOAL_WIDTH * CELL;
-        ctx!.fillStyle = "#14532d";
+        ctx!.save();
+        if (skin.glow) {
+          ctx!.shadowBlur = 10;
+          ctx!.shadowColor = skin.goalBorder;
+        }
+        ctx!.fillStyle = skin.goalBg;
         ctx!.fillRect(x + 2, y + 2, w - 4, CELL - 4);
-        ctx!.strokeStyle = "#eab308";
+        ctx!.strokeStyle = skin.goalBorder;
         ctx!.lineWidth = 2;
         ctx!.strokeRect(x + 2, y + 2, w - 4, CELL - 4);
         if (goal.occupied) {
-          ctx!.fillStyle = "#4ade80";
+          ctx!.shadowBlur = skin.glow ? 10 : 0;
+          ctx!.shadowColor = skin.goalOccupied;
+          ctx!.fillStyle = skin.goalOccupied;
           ctx!.beginPath();
           ctx!.ellipse(x + w / 2, y + CELL / 2, 12, 10, 0, 0, Math.PI * 2);
           ctx!.fill();
         }
+        ctx!.restore();
       });
     }
 
-    function drawFrog() {
+    function drawFrog(skin: Skin) {
       if (status !== "playing" && lives === 0) return;
       const t = frog.animating ? frog.animT / JUMP_MS : 1;
       const drawCol = frog.animating
@@ -500,13 +670,18 @@ export default function FroggerGame({
       const cy = drawRow * CELL + CELL / 2;
       const hop = frog.animating ? Math.sin(Math.PI * t) * 8 : 0;
 
-      ctx!.fillStyle = "#39ff14";
+      ctx!.save();
+      if (skin.glow) {
+        ctx!.shadowBlur = 12;
+        ctx!.shadowColor = skin.frogBody;
+      }
+      ctx!.fillStyle = skin.frogBody;
       ctx!.beginPath();
       ctx!.ellipse(cx, cy - hop, 14, 12, 0, 0, Math.PI * 2);
       ctx!.fill();
 
       if (frog.animating) {
-        ctx!.strokeStyle = "#39ff14";
+        ctx!.strokeStyle = skin.frogBody;
         ctx!.lineWidth = 3;
         ctx!.beginPath();
         ctx!.moveTo(cx - 10, cy - hop + 6);
@@ -516,29 +691,35 @@ export default function FroggerGame({
         ctx!.stroke();
       }
 
-      ctx!.fillStyle = "#ffffff";
+      ctx!.shadowBlur = 0;
+      ctx!.fillStyle = skin.frogEyeWhite;
       ctx!.beginPath();
       ctx!.arc(cx - 5, cy - hop - 4, 3, 0, Math.PI * 2);
       ctx!.arc(cx + 5, cy - hop - 4, 3, 0, Math.PI * 2);
       ctx!.fill();
-      ctx!.fillStyle = "#111827";
+      ctx!.fillStyle = skin.frogEyePupil;
       ctx!.beginPath();
       ctx!.arc(cx - 5, cy - hop - 4, 1.4, 0, Math.PI * 2);
       ctx!.arc(cx + 5, cy - hop - 4, 1.4, 0, Math.PI * 2);
       ctx!.fill();
+      ctx!.restore();
     }
 
-    function drawHud() {
+    function drawHud(skin: Skin) {
       ctx!.fillStyle = "rgba(0,0,0,0.45)";
       ctx!.fillRect(0, 0, CANVAS_W, 6);
       const pct = Math.max(0, roundTimer / roundTimeForLevel(level));
       ctx!.fillStyle =
-        pct > 0.5 ? "#22c55e" : pct > 0.25 ? "#eab308" : "#ef4444";
+        pct > 0.5
+          ? skin.timerGood
+          : pct > 0.25
+            ? skin.timerWarn
+            : skin.timerBad;
       ctx!.fillRect(0, 0, CANVAS_W * pct, 4);
 
       ctx!.font = "16px monospace";
       ctx!.textBaseline = "top";
-      ctx!.fillStyle = "#ffffff";
+      ctx!.fillStyle = skin.hudText;
       ctx!.textAlign = "left";
       ctx!.fillText(String(score), 8, 10);
 
@@ -546,26 +727,33 @@ export default function FroggerGame({
       ctx!.fillText(`NIVEL ${level}`, CANVAS_W / 2, 10);
 
       ctx!.textAlign = "right";
+      ctx!.save();
+      if (skin.glow) {
+        ctx!.shadowBlur = 8;
+        ctx!.shadowColor = skin.frogBody;
+      }
       for (let i = 0; i < lives; i++) {
         ctx!.beginPath();
-        ctx!.fillStyle = "#39ff14";
+        ctx!.fillStyle = skin.frogBody;
         ctx!.arc(CANVAS_W - 12 - i * 18, 18, 6, 0, Math.PI * 2);
         ctx!.fill();
       }
+      ctx!.restore();
       ctx!.textAlign = "left";
     }
 
     function draw() {
+      const skin = activeSkin();
       for (let row = 0; row < ROWS; row++) {
-        ctx!.fillStyle = laneBg(row);
+        ctx!.fillStyle = laneBg(row, skin);
         ctx!.fillRect(0, row * CELL, CANVAS_W, CELL);
       }
-      drawGoals();
+      drawGoals(skin);
       lanes.forEach((lane) => {
-        lane.entities.forEach((entity) => drawEntity(entity, lane.row));
+        lane.entities.forEach((entity) => drawEntity(entity, lane.row, skin));
       });
-      drawFrog();
-      drawHud();
+      drawFrog(skin);
+      drawHud(skin);
     }
 
     const onKeyDown = (e: KeyboardEvent) => {

@@ -9,8 +9,11 @@ import { createClient } from "@/lib/supabase/client";
 
 const FroggerGame = dynamic(() => import("./FroggerGame"), { ssr: false });
 
+const AVAILABLE_SKINS = ["classic", "retro", "neon"];
+
 export default function FroggerPlayer({ game }: { game: Game }) {
   const [paused, setPaused] = useState(false);
+  const [skinKey, setSkinKey] = useState(AVAILABLE_SKINS[0]);
   const [over, setOver] = useState(false);
   const [name, setName] = useState("INVITADO");
   const [saved, setSaved] = useState(false);
@@ -63,6 +66,20 @@ export default function FroggerPlayer({ game }: { game: Game }) {
           </div>
         </div>
         <div className="hud-actions">
+          {AVAILABLE_SKINS.length > 1 && (
+            <div style={{ display: "flex", gap: 6 }}>
+              {AVAILABLE_SKINS.map((s) => (
+                <button
+                  key={s}
+                  className={`btn ${skinKey === s ? "yellow" : "ghost"}`}
+                  onClick={() => setSkinKey(s)}
+                  style={{ textTransform: "uppercase" }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
           <button className="btn yellow" onClick={togglePause}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
@@ -77,6 +94,7 @@ export default function FroggerPlayer({ game }: { game: Game }) {
           <FroggerGame
             key={gameKey}
             paused={paused}
+            skinKey={skinKey}
             onScoreChange={setScore}
             onLivesChange={setLives}
             onLevelChange={setLevel}
