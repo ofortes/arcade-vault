@@ -166,12 +166,16 @@ const BRICK_COLS = 8;
 const BRICK_POINTS = 10;
 const INITIAL_LIVES = 3;
 
-const BRICK_W = 48;
-const BRICK_H = 20;
+// Tamaño de bloque = tamaño fuente en el atlas (32x16, escala 1x). Escalar a
+// 2x (64x16) desbordaría el ancho del tablero (8 cols x 64 + gaps > 448).
+const BRICK_W = 32;
+const BRICK_H = 16;
 const BRICK_GAP = 4;
 const BRICK_OFFSET_Y = 40;
 
-const PADDLE_W = 80;
+// Paddle fuente en el atlas: 162x14. Ancho a mitad exacta (escala 1/2x, el
+// factor entero más cercano al ancho de juego original de 80).
+const PADDLE_W = 81;
 const PADDLE_H = 14;
 
 const BALL_R = 8;
