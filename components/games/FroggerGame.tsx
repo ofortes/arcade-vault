@@ -742,6 +742,34 @@ export default function FroggerGame({
       ctx!.textAlign = "left";
     }
 
+    const DEV_FPS_OVERLAY = process.env.NODE_ENV === "development";
+    let fpsInstant = 0;
+    let fpsAvg = 0;
+    let fpsMin = Infinity;
+    let fpsFrameCount = 0;
+    let fpsElapsedMs = 0;
+
+    function drawFpsOverlay() {
+      const w = 160;
+      const h = 18;
+      const x = CANVAS_W - w;
+      const y = CANVAS_H - h;
+      ctx!.save();
+      ctx!.fillStyle = "rgba(0,0,0,0.6)";
+      ctx!.fillRect(x, y, w, h);
+      ctx!.font = "11px monospace";
+      ctx!.textAlign = "right";
+      ctx!.textBaseline = "middle";
+      ctx!.fillStyle = "#00ff6a";
+      const min = fpsMin === Infinity ? 0 : fpsMin;
+      ctx!.fillText(
+        `FPS ${fpsInstant.toFixed(0)} avg ${fpsAvg.toFixed(0)} min ${min.toFixed(0)}`,
+        x + w - 6,
+        y + h / 2 + 1,
+      );
+      ctx!.restore();
+    }
+
     function draw() {
       const skin = activeSkin();
       for (let row = 0; row < ROWS; row++) {
@@ -754,6 +782,7 @@ export default function FroggerGame({
       });
       drawFrog(skin);
       drawHud(skin);
+      if (DEV_FPS_OVERLAY) drawFpsOverlay();
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -772,6 +801,13 @@ export default function FroggerGame({
       if (!running) return;
       const dt = lastTime === null ? 0 : ts - lastTime;
       lastTime = ts;
+      if (DEV_FPS_OVERLAY && dt > 0 && dt < 250) {
+        fpsInstant = 1000 / dt;
+        fpsFrameCount += 1;
+        fpsElapsedMs += dt;
+        fpsAvg = (fpsFrameCount / fpsElapsedMs) * 1000;
+        if (fpsInstant < fpsMin) fpsMin = fpsInstant;
+      }
       update(Math.min(dt, 100));
       draw();
       reportState();
