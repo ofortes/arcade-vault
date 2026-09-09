@@ -216,6 +216,7 @@ export function createArkanoidGame(
   canvas.width = LOGICAL_WIDTH * dpr;
   canvas.height = LOGICAL_HEIGHT * dpr;
   ctx.scale(dpr, dpr);
+  ctx.imageSmoothingEnabled = false;
 
   let currentSkin: Skin = SKINS[skinKey ?? "classic"] ?? SKINS.classic;
 
