@@ -1,6 +1,6 @@
 # 10 · Performance en Frogger
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Depende de:** Frogger core (`specs/game-jam/frogger/01-frogger-core.md`)
 - **Fecha:** 2026-09-09
 - **Objetivo:** Diagnosticar con profiling y corregir el stutter/caídas de FPS de Frogger (`components/games/FroggerGame.tsx`), añadiendo un overlay de FPS solo en desarrollo para medir antes y después del fix.

@@ -69,7 +69,7 @@ function buildRoadLane(
     entities.push({ col, width, type });
     col += width + randInt(2, 4);
   }
-  return { row, speed: baseSpeed * Math.pow(1.15, level - 1), dir, entities };
+  return { row, speed: baseSpeed * Math.pow(1.1, level - 1), dir, entities };
 }
 
 function buildRiverLane(
@@ -95,13 +95,13 @@ function buildLanes(level: number): Lane[] {
 
   for (let row = ROW_ROAD_TOP; row <= ROW_ROAD_BOT; row++) {
     const dir: 1 | -1 = row % 2 === 0 ? -1 : 1;
-    const baseSpeed = 1.5 + Math.random() * 2.5; // 1.5 - 4 px/frame
+    const baseSpeed = 0.5 + Math.random() * 2.5; // 1.5 - 4 px/frame
     lanes.push(buildRoadLane(row, dir, baseSpeed, level));
   }
 
   for (let row = ROW_RIVER_TOP; row <= ROW_RIVER_BOT; row++) {
     const dir: 1 | -1 = row % 2 === 0 ? 1 : -1;
-    const baseSpeed = 1 + Math.random() * 2; // 1 - 3 px/frame
+    const baseSpeed = 0.3 + Math.random() * 2; // 1 - 3 px/frame
     lanes.push(buildRiverLane(row, dir, baseSpeed, level));
   }
 
