@@ -69,7 +69,7 @@ function buildRoadLane(
     entities.push({ col, width, type });
     col += width + randInt(2, 4);
   }
-  return { row, speed: baseSpeed * Math.pow(1.15, level - 1), dir, entities };
+  return { row, speed: baseSpeed * Math.pow(1.1, level - 1), dir, entities };
 }
 
 function buildRiverLane(
@@ -95,13 +95,13 @@ function buildLanes(level: number): Lane[] {
 
   for (let row = ROW_ROAD_TOP; row <= ROW_ROAD_BOT; row++) {
     const dir: 1 | -1 = row % 2 === 0 ? -1 : 1;
-    const baseSpeed = 1.5 + Math.random() * 2.5; // 1.5 - 4 px/frame
+    const baseSpeed = 0.5 + Math.random() * 2.5; // 1.5 - 4 px/frame
     lanes.push(buildRoadLane(row, dir, baseSpeed, level));
   }
 
   for (let row = ROW_RIVER_TOP; row <= ROW_RIVER_BOT; row++) {
     const dir: 1 | -1 = row % 2 === 0 ? 1 : -1;
-    const baseSpeed = 1 + Math.random() * 2; // 1 - 3 px/frame
+    const baseSpeed = 0.3 + Math.random() * 2; // 1 - 3 px/frame
     lanes.push(buildRiverLane(row, dir, baseSpeed, level));
   }
 
@@ -569,8 +569,9 @@ export default function FroggerGame({
       const y = row * CELL;
       const w = entity.width * CELL;
       const h = CELL;
-      ctx!.save();
-      if (skin.glow) {
+      const glow = skin.glow;
+      if (glow) {
+        ctx!.save();
         ctx!.shadowBlur = 10;
         ctx!.shadowColor =
           entity.type === "car" || entity.type === "truck"
@@ -588,7 +589,7 @@ export default function FroggerGame({
           ctx!.fillStyle = "rgba(255, 255, 255, 0.35)";
           ctx!.fillRect(x + 3, y + 8, w - 6, 4);
         }
-        ctx!.shadowBlur = 0;
+        if (glow) ctx!.shadowBlur = 0;
         ctx!.fillStyle = skin.wheel;
         ctx!.beginPath();
         ctx!.arc(x + 10, y + h - 8, 5, 0, Math.PI * 2);
@@ -601,7 +602,7 @@ export default function FroggerGame({
           ctx!.fillStyle = "rgba(255, 255, 255, 0.35)";
           ctx!.fillRect(x + 2, y + 8, w - 4, 4);
         }
-        ctx!.shadowBlur = 0;
+        if (glow) ctx!.shadowBlur = 0;
         ctx!.strokeStyle = skin.logLine;
         ctx!.lineWidth = 1;
         for (let i = 1; i < entity.width; i++) {
@@ -627,16 +628,17 @@ export default function FroggerGame({
         }
         ctx!.globalAlpha = 1;
       }
-      ctx!.restore();
+      if (glow) ctx!.restore();
     }
 
     function drawGoals(skin: Skin) {
+      const glow = skin.glow;
       goals.forEach((goal) => {
         const x = goal.col * CELL;
         const y = ROW_GOALS * CELL;
         const w = GOAL_WIDTH * CELL;
-        ctx!.save();
-        if (skin.glow) {
+        if (glow) {
+          ctx!.save();
           ctx!.shadowBlur = 10;
           ctx!.shadowColor = skin.goalBorder;
         }
@@ -646,14 +648,13 @@ export default function FroggerGame({
         ctx!.lineWidth = 2;
         ctx!.strokeRect(x + 2, y + 2, w - 4, CELL - 4);
         if (goal.occupied) {
-          ctx!.shadowBlur = skin.glow ? 10 : 0;
-          ctx!.shadowColor = skin.goalOccupied;
+          if (glow) ctx!.shadowColor = skin.goalOccupied;
           ctx!.fillStyle = skin.goalOccupied;
           ctx!.beginPath();
           ctx!.ellipse(x + w / 2, y + CELL / 2, 12, 10, 0, 0, Math.PI * 2);
           ctx!.fill();
         }
-        ctx!.restore();
+        if (glow) ctx!.restore();
       });
     }
 
@@ -669,9 +670,10 @@ export default function FroggerGame({
       const cx = drawCol * CELL + CELL / 2;
       const cy = drawRow * CELL + CELL / 2;
       const hop = frog.animating ? Math.sin(Math.PI * t) * 8 : 0;
+      const glow = skin.glow;
 
-      ctx!.save();
-      if (skin.glow) {
+      if (glow) {
+        ctx!.save();
         ctx!.shadowBlur = 12;
         ctx!.shadowColor = skin.frogBody;
       }
@@ -691,7 +693,7 @@ export default function FroggerGame({
         ctx!.stroke();
       }
 
-      ctx!.shadowBlur = 0;
+      if (glow) ctx!.shadowBlur = 0;
       ctx!.fillStyle = skin.frogEyeWhite;
       ctx!.beginPath();
       ctx!.arc(cx - 5, cy - hop - 4, 3, 0, Math.PI * 2);
@@ -702,7 +704,7 @@ export default function FroggerGame({
       ctx!.arc(cx - 5, cy - hop - 4, 1.4, 0, Math.PI * 2);
       ctx!.arc(cx + 5, cy - hop - 4, 1.4, 0, Math.PI * 2);
       ctx!.fill();
-      ctx!.restore();
+      if (glow) ctx!.restore();
     }
 
     function drawHud(skin: Skin) {
@@ -727,8 +729,8 @@ export default function FroggerGame({
       ctx!.fillText(`NIVEL ${level}`, CANVAS_W / 2, 10);
 
       ctx!.textAlign = "right";
-      ctx!.save();
       if (skin.glow) {
+        ctx!.save();
         ctx!.shadowBlur = 8;
         ctx!.shadowColor = skin.frogBody;
       }
@@ -738,8 +740,36 @@ export default function FroggerGame({
         ctx!.arc(CANVAS_W - 12 - i * 18, 18, 6, 0, Math.PI * 2);
         ctx!.fill();
       }
-      ctx!.restore();
+      if (skin.glow) ctx!.restore();
       ctx!.textAlign = "left";
+    }
+
+    const DEV_FPS_OVERLAY = process.env.NODE_ENV === "development";
+    let fpsInstant = 0;
+    let fpsAvg = 0;
+    let fpsMin = Infinity;
+    let fpsFrameCount = 0;
+    let fpsElapsedMs = 0;
+
+    function drawFpsOverlay() {
+      const w = 160;
+      const h = 18;
+      const x = CANVAS_W - w;
+      const y = CANVAS_H - h;
+      ctx!.save();
+      ctx!.fillStyle = "rgba(0,0,0,0.6)";
+      ctx!.fillRect(x, y, w, h);
+      ctx!.font = "11px monospace";
+      ctx!.textAlign = "right";
+      ctx!.textBaseline = "middle";
+      ctx!.fillStyle = "#00ff6a";
+      const min = fpsMin === Infinity ? 0 : fpsMin;
+      ctx!.fillText(
+        `FPS ${fpsInstant.toFixed(0)} avg ${fpsAvg.toFixed(0)} min ${min.toFixed(0)}`,
+        x + w - 6,
+        y + h / 2 + 1,
+      );
+      ctx!.restore();
     }
 
     function draw() {
@@ -754,6 +784,7 @@ export default function FroggerGame({
       });
       drawFrog(skin);
       drawHud(skin);
+      if (DEV_FPS_OVERLAY) drawFpsOverlay();
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -772,6 +803,13 @@ export default function FroggerGame({
       if (!running) return;
       const dt = lastTime === null ? 0 : ts - lastTime;
       lastTime = ts;
+      if (DEV_FPS_OVERLAY && dt > 0 && dt < 250) {
+        fpsInstant = 1000 / dt;
+        fpsFrameCount += 1;
+        fpsElapsedMs += dt;
+        fpsAvg = (fpsFrameCount / fpsElapsedMs) * 1000;
+        if (fpsInstant < fpsMin) fpsMin = fpsInstant;
+      }
       update(Math.min(dt, 100));
       draw();
       reportState();

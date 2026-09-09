@@ -10,7 +10,7 @@ Arcade Vault — a platform to play games online and compete for high scores (pe
 
 There is no test runner configured yet; verification is manual (`npm run build` + playing a full match) per spec.
 
-## Estado actual (specs implementadas, 01–09)
+## Estado actual (specs implementadas, 01–09 + game-jam/frogger)
 
 - **01 MVP visual** — scaffold inicial de UI.
 - **02 Home/Landing** — `components/HomeLanding.tsx` (Server Component en `app/page.tsx`).
@@ -21,8 +21,9 @@ There is no test runner configured yet; verification is manual (`npm run build` 
 - **07 Tetris** — `lib/games/tetris/engine.ts`, HUD condicional ("Líneas") en `GamePlayer.tsx`.
 - **08 Arkanoid** — `lib/games/arkanoid/engine.ts` + `spritesheet.ts`, assets/sonidos en `public/`, ficha insertada en tabla `games`.
 - **09 Snake** — `lib/games/snake/engine.ts` + `sprites.ts` (atlas `fruits.png` en `public/sprites/snake/`), portada `.cover-snake-real` en `globals.css`.
+- **Frogger** (spec `specs/game-jam/frogger/01-frogger-core.md`, salida del agente game-jam) — **NO sigue el patrón registry**: vive en `components/games/FroggerGame.tsx` + `FroggerPlayer.tsx`, ruta `app/juegos/frogger/jugar/page.tsx`, sin entrada en `lib/games/registry.ts`. Ojo al tocarlo o al usarlo de referencia para nuevos juegos.
 
-Todos los motores de juego se registran en `lib/games/registry.ts` (`gameEngines`).
+Los motores de juego "clásicos" (asteroides/tetris/arkanoid/snake) se registran en `lib/games/registry.ts` (`gameEngines`); Frogger es la excepción, ver arriba.
 
 Rutas clave: `/juegos` (biblioteca), `/juegos/[id]` (ficha), `/juegos/[id]/jugar` (reproductor), Salón de la Fama.
 
@@ -35,6 +36,7 @@ Usa siempre /front-design para hacer interfaz de usuario.
 - **game-planner** (`.claude/agents/game-planner.md`) — analiza el catálogo actual (`lib/games-types.ts`, `lib/games/registry.ts`) y decide qué juego(s) nuevos encajarían con la plataforma. No escribe specs ni código: solo propone ideas justificadas y las guarda en `references/game-suggestions-todo.md` para no repetirlas en futuras invocaciones. Invocalo cuando quieras evaluar el próximo juego a portar antes de correr `/add-game`.
 - **game-jam** (`.claude/agents/game-jam.md`) — recibe un tema de game jam y genera tres specs completas (formato de `specs/07-tetris-game.md`/`08-arkanoid-game.md`/`09-snake-game.md`) en `specs/game-jam/[game-id]/spec.md`, con `Estado: Propuesto`. No implementa código ni ejecuta SQL. Úsalo para explorar rápido varias ideas de juego a partir de un tema antes de decidir cuál implementar.
 - **skin-designer** (`.claude/agents/skin-designer.md`) — aplica los 3 skins canónicos (classic, retro, neon) a un juego concreto indicado por el usuario. Trabaja un juego a la vez, implementa directamente sobre `components/games/<Juego>.tsx` siguiendo el patrón de `TetrisGame`, y registra el progreso en `references/game-with-themes.md`. Úsalo cuando pidas "aplica skins a <juego>" o similar.
+- **mobile-porter** (`.claude/agents/mobile-porter.md`) — cabla controles táctiles (`MobileGamepad`) en la play-page de un juego. **Desactualizado/no ejecutable tal cual**: referencia `specs/10-mobile-touch-controls.md`, `components/MobileGamepad.tsx` y rutas `app/games/<juego>/play/page.tsx` que no existen en este repo (las rutas reales son `app/juegos/[id]/jugar`). Revisar/actualizar el agente antes de invocarlo.
 
 ## Stack
 
