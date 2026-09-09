@@ -1,23 +1,37 @@
 import type { Metadata } from "next";
-import { Press_Start_2P, JetBrains_Mono, Courier_Prime } from "next/font/google";
+import localFont from "next/font/local";
 import Nav from "@/components/Nav";
 import "./globals.css";
 
-const pressStart2P = Press_Start_2P({
+// Fuentes self-hosted (subset latin, descargadas de Google Fonts).
+// Se sirven desde `app/fonts/` en vez de `next/font/google` para que el build
+// no dependa de alcanzar fonts.googleapis.com — detrás de proxy corporativo
+// esa descarga falla y Next cae a una fuente de fallback.
+const pressStart2P = localFont({
+  src: "./fonts/PressStart2P-Regular.woff2",
   variable: "--font-press-start-2p",
   weight: "400",
-  subsets: ["latin"],
+  style: "normal",
+  display: "swap",
+  fallback: ["system-ui", "monospace"],
 });
 
-const jetBrainsMono = JetBrains_Mono({
+const jetBrainsMono = localFont({
+  src: "./fonts/JetBrainsMono-Variable.woff2",
   variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
+  weight: "100 800",
+  style: "normal",
+  display: "swap",
+  fallback: ["ui-monospace", "Courier New", "monospace"],
 });
 
-const courierPrime = Courier_Prime({
+const courierPrime = localFont({
+  src: "./fonts/CourierPrime-Regular.woff2",
   variable: "--font-courier-prime",
   weight: "400",
-  subsets: ["latin"],
+  style: "normal",
+  display: "swap",
+  fallback: ["Courier New", "monospace"],
 });
 
 export const metadata: Metadata = {
